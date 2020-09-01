@@ -1,0 +1,215 @@
+void GObj_AddGXLink(GOBJ *gobj, void *cb, int gx_link, int gx_pri)
+void GObj_AddObject(GOBJ *gobj, u8 unk, void *object)
+
+8024ef7c #initializes animation
+
+## FAILED ATTEMPT
+
+load r0, 0x00000010
+load r3, 0x00000210
+load r4, 0x00000010
+load r7, 0x0000000c
+load r8, 0x0000001f
+load r9, 0xffffffe1
+load r11, 0x80479cd8
+load r12, 0x8024f840
+load r13, 0x804db6a0
+load r24, 0x8135ce20
+load r25, 0x804ce3e4
+load r26, 0x804ce380
+load r27, 0x804a04f0
+load r28, 0x813993c0
+load r29, 0x803ef870
+load r31, 0x8135ce20
+
+# assign mem
+load r4, 0x02000000
+stw r4, 0x0(r28)
+
+branchl r12, 0x8024f894 # go to start of showing the dialog
+
+# Schedule Function
+load r4, 0x8024f318
+mflr r4 # Function to Run
+branchl r12, GObj_AddProc
+
+# Schedule Function
+load r4, 0x8024eccc
+mflr r4 # Function to Run
+branchl r12, GObj_AddProc
+#####
+
+Confirm Dialog
+
+Possible pointers to showing dialog
+
+Values on Erase Data Menus
+8040672a 00f80000 value when closed
+8040672a 01060000 value when opened
+
+8139daa1 00000000 value when closed
+8139daa1 01000000 value when opened
+
+Valueson Data Snapshots - NO memory cards Inserted
+8040672a 01420000 value when closed
+8040672a 01160000 value when opened
+
+004ce3c4
+
+004ce390 81365780
+004ce394 0000000f
+004ce398 0000000c
+004ce3bc 813b66c0
+004ce3c0 00000009
+004ce3c4 00000003
+
+
+Values when closed on options erased Data
+004ce390 8137c780
+004ce394 0000000f
+004ce398 0000000e
+004ce3bc 813657e0
+004ce3c0 00000009
+004ce3c4 00000003
+
+Values when open on options erased Data
+004ce390 81365780
+004ce394 00000011
+004ce398 0000000C
+004ce3bc 813b66c0
+004ce3c0 0000000A
+004ce3c4 00000002
+
+0130B848 -> Possible string
+003ba34c
+
+0040672A
+
+013A16C0 # Dialog ID 
+013A16C1 # Dialog STATE ON/OFF
+
+013A16C0 00000000 # SHOW DIALOG TO DELETE HIDDEN CHARS
+013A16C0 00010000 # HIDE DIALOG TO DELETE HIDDEN CHARS
+# First byte is selected option
+# second byte is open dialog or not 
+# 3rd byte is hovering yes or no
+# 4th dunno
+
+804a04f0 # memory storing location of on menu scene
+# 18040000 this is on options erase data
+offset
+7FFF 7540
+
+8024f8c4 # move back
+8024fa9c # addrss move down
+8024f988 # move up
+8024f8fc # on hit start/A
+8024f910 function address to start showing dialog
+8024f7a8 function address to start closing dialog 
+802faf0 function address to set selected option
+8024fb1c func addr to set selected option ends
+
+set_dlg_cfg
+804a0501
+3c
+800c000000000000
+804eea2
+
+804b35a1
+
+804b3661804bfd89
+804bff81
+0000000
+
+JOBJs Ids: 812e4f28 Broken Image?
+JOBJs Ids: 812e8288 View List Image?
+0x811f9054 # Diaog Image?
+
+# functions
+
+8024f8fc # on delete menu update check: An option has been selected and clicked
+
+80390a70 # loads GX resource?
+8024ef3c/8039069c # tries to shows resource loaded?
+8038fd54 # brings loaded resources to front ?
+8036fb5c # start loading text? / resource gfx_load_1
+8024f0a4 # set NO X position 800c000000000000
+8024f0c0 # Set YES X Position
+8024edb0 # func addrs sets dialog text (works on an update function after dlg is initialized)
+#vars restored:
+f30, f31
+r28, r29, r30, r31
+
+# MEM: 813576e0 stored menu position
+0x013E 318 # Erase?
+0x013f 319 # Are you sure?
+0x0140 320 # There are no mem cards
+# Snapshot menu # opens at 80257f24
+###########################
+
+804a0a10 # mem address where timer is stored
+8024ef7c # initializes animation
+80257fa0 # function where the menu sets the timer var
+802545c4 # Think function
+80257f90 # Clear space and Starts setting memory values
+# func address that sets text
+/* 802549C8 002515A8  38 80 01 40 */	li r4, 0x140
+80254920 # memc check start to decide what to show
+80254c00 # check where memory card is removed
+802548d4 # After initial timer check before menu is shown
+80254950 #
+
+80258854 # address to GX Link when opening menu
+
+80254950 # start creating dialog after timer
+80254c10 # start creating dialog after memcard is removed
+80254970 # hides dialog options (calls -> 8025409c)
+8025495c # stores dialog delay in r0 and then to r27  0 =  no delay max is F = 15 frames
+80254970 # calls func that sets/create? dialog options (8025409c)
+# r3: 0 hide, 1 shows yes/no and selects yes, 2 shows y/n and selects n
+# r0: 1 shows everything, 0: hides all
+
+802549bc # sets float location of texture
+802549bc # loads text texture of dialog
+802549e4 # sets size of texture stored in (f0)
+802549f0 # transforms text texture?
+# f0 (which is assigned at 802549e0) is a the scale of the text texture
+# r4: text ID 0x013f="Are you sure?" 0x0140 (or 320) is the default there is no memcard thex
+
+
+# rtoc value: 0x3F9EB851E00036E0
+# scale I want: 3fA8f851e0000000
+# rtoc 0x804df9e0
+804dc350
+804dc0e0
+# default scale: 3f9eb851e0000000
+# diff: 0xFFF5C00000000000
+3cf5c28f
+3d47c28f
+
+# replacing code from
+# start: 8025495c
+# end: 802549f0
+
+802549f4 # menu finished creating
+80257d58 # continue to return of update menu
+802545c4 # start of update menu
+80254b68 # checks if action has finished (checks timer)
+80254898 # checks initial countdown timer
+802547a4 # checks a timer?
+
+
+80254950 # create dialog on menu
+# Create and show dialog1
+* 80254950 00251530  38 00 FF FF */	li r0, -1
+
+
+80257d7c # think address for input handler for snapshot menu
+80257df4 # starts checking if back was pressed
+
+801971c4 # function that checks for input while on logout/snapshot menu
+########
+
+
+//8039063C
+void GObj_GXReorder(HSD_GObj* gobj, HSD_GObj* hiprio_gobj)

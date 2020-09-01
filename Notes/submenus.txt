@@ -1,0 +1,64 @@
+instruction adrress for opening menu? 
+8022dda8
+exact address where the selection is set: 8022ddf8
+=============
+Address and word value
+804d68b8 -> 0601 # Stores submenu and selection before the menu is loaded
+804d68bc -> Stores Character Select Screens* ?
+
+Screens: I'm calling scenes to the different UI shown to the user
+0x02 Melee 
+0x03 Regular Classic
+0x04 Regular Adventure
+0x1F Special Stamina
+==============
+
+004a0504 - something on menu selection
+Address of menu option selection:
+01365740 -> selected menu as well?
+013656A0
+004A04F0 -> Currently selected menu
+804d68b8
+0x02000004 -> Vs Mode Selecting Name Entry
+
+# byte breakdown:
+# current sub menu
+# previous sub menu 
+# Last 2 bytes is selection index of submenu
+# i.e: 0002 means that the 3rd option is selected
+
+# submenu values
+0x00 - Main Menu
+0x01 - 1P Mode
+0x02 - Vs Mode
+0x03 - Thophies
+0x04 - Option
+0x05 - Data
+0x06 - 1P Mode - Regular Match 
+0x07 - 1P Mode - Event Match 
+0x08 - 1P Mode - Online Play 
+0x09 - 1P Mode - Stadium 
+0x0A - ?? - 1P Mode - Training Mode 
+0x0B - ?? - VS Mode - Tournament Melee
+0x0C - VS Mode - Special Melee 
+0x0D - VS Mode - Custom Rules
+0x0E - ?? - VS Mode - Name Entry
+0x0F - VS Mode - Custom Rules - Additional Rules
+0x10 - VS Mode - Custom Rules - Item Switch
+0x11 - VS Mode - Custom Rules - Additional Rules - Random Stage
+0x12 - VS Mode - Name entry
+0x13 - Options - Rumble
+0x14 - Options - Sound
+0x15 - Options - Screen Display
+0x16 - ?? - Options 
+0x17 - Options - Language
+0x18 - Options - Erase Data
+0x19 - Data - Snapshots
+0x1A - Data - Archives
+0x1B - Data - Sound Test
+0x1C - Data - Melee Records
+0x1D - Data - Special
+0x1E - Data - Melee Records - VS. Records
+0x1F - Data - Melee Records - Bonus Records
+0x20 - Data - Melee Records - Misc. Records
+0x21 - 1P Mode - Stadium - Multi-Man Melee

@@ -156,6 +156,15 @@ blrl
 .float 0 # Z Offset, 0x8
 .float 0.1 # Scaling, 0xC
 
+# User text config
+################################################################################
+CHAT_CONFIG_TEXT_BLRL:
+blrl
+.float -112 # X Pos of User Display, 0x0
+.float 70 # Y Pos of User Display, 0x4
+.float 0 # Z Offset, 0x8
+.float 0.1 # Scaling, 0xC
+
 ################################################################################
 # Start Init Function
 ################################################################################

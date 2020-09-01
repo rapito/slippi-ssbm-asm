@@ -5,7 +5,9 @@
 .include "Common/Common.s"
 .include "Online/Online.s"
 
-.set REG_FG_USER_DISPLAY, 30
+.set REG_FG_USER_DISPLAY, 29
+.set REG_DLG_GOBJ, 25
+.set REG_DLG_JOBJ, 26
 
 backup
 
@@ -259,15 +261,53 @@ li r3, ONLINE_MODE_DIRECT
 b FN_OnlineSubmenuThink_GO_TO_CSS
 
 FN_OnlineSubmenuThink_HANDLE_LOGIN:
-li	r3, 1
+li	r3, 2
 branchl r12, SFX_Menu_CommonSound
 
 li r4, CONST_SlippiCmdOpenLogIn
 b FN_OnlineSubmenuThink_TRIGGER_EXI_MSG
 
 FN_OnlineSubmenuThink_HANDLE_LOGOUT:
-li r4, CONST_SlippiCmdLogOut
-b FN_OnlineSubmenuThink_TRIGGER_EXI_MSG
+li	r3, 3
+branchl r12, SFX_Menu_CommonSound
+
+backup
+
+lwz	r3, -0x3E68 (r13)
+branchl r12, 0x8038fe24 # address that calls function(8038fe24) maybe allows input in the dialog and blocks them in the erase menu?
+
+# Create GObj on snapshot menu
+li r3, 6 # GObj Type (6 is item type?)
+li r4, 7 # On-Pause Function (dont run on pause)
+li r5, 128 # some type of priority
+branchl r12, GObj_Create
+mr REG_DLG_GOBJ, r3 # store result
+
+# Create JOBJ
+#load r3, 0x804a0a78
+#lwz r3, 0x0(r3)
+load r3, 0x811f9054
+branchl r12, 0x80370E44 # (this func only uses r3)
+mr REG_DLG_JOBJ, r3 # store result
+
+# Add JOBJ to GObj
+mr r3,REG_DLG_GOBJ
+lbz	r4, -0x3E57 (r13)
+mr r5,REG_DLG_JOBJ
+branchl r12, 0x80390A70
+
+# AddGXLink
+mr r3, REG_DLG_GOBJ
+load r4, 0x80391070 # GX Callback func to use
+li r5, 0x6 # Assigns the gx_link index
+li r6, 128 # sets the priority
+branchl r12, 0x8039069c
+
+
+restore
+
+
+b FN_OnlineSubmenuThink_INPUT_HANDLERS_END
 
 FN_OnlineSubmenuThink_HANDLE_UPDATE:
 li	r3, 1

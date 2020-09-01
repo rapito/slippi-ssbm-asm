@@ -1,0 +1,66 @@
+zz_024ebc8_
+8024ebc8: mflr	r0
+8024ebcc: lis	r4, 0x803F
+8024ebd0: stw	r0, 0x0004 (sp)
+8024ebd4: crclr	6, 6
+8024ebd8: stwu	sp, -0x0028 (sp)
+8024ebdc: stw	r31, 0x0024 (sp)
+8024ebe0: subi	r31, r4, 1936
+8024ebe4: addi	r4, sp, 16
+8024ebe8: stw	r30, 0x0020 (sp)
+8024ebec: addi	r30, r6, 0
+8024ebf0: li	r6, -1
+8024ebf4: stw	r29, 0x001C (sp)
+8024ebf8: addi	r29, r5, 0
+8024ebfc: li	r5, 4
+8024ec00: stw	r28, 0x0018 (sp)
+8024ec04: addi	r28, r3, 0
+8024ec08: bl	->0x80011E24
+8024ec0c: rlwinm.	r0, r29, 0, 24, 31 (000000ff)
+8024ec10: beq-	 ->0x8024EC1C
+8024ec14: lfs	f1, -0x3838 (rtoc)
+8024ec18: b	->0x8024EC20
+8024ec1c: lfs	f1, -0x3834 (rtoc)
+8024ec20: lwz	r3, 0x0010 (sp)
+8024ec24: bl	->0x8036F8BC
+8024ec28: lwz	r3, 0x0010 (sp)
+8024ec2c: li	r4, 255
+8024ec30: li	r5, 1024
+8024ec34: bl	->0x8022F3D8
+8024ec38: lwz	r3, 0x0010 (sp)
+8024ec3c: bl	->0x80370928
+8024ec40: addi	r3, r28, 0
+8024ec44: crclr	6, 6
+8024ec48: addi	r4, sp, 20
+8024ec4c: li	r5, 1
+8024ec50: li	r6, -1
+8024ec54: bl	->0x80011E24
+8024ec58: rlwinm.	r0, r29, 0, 24, 31 (000000ff)
+8024ec5c: beq-	 ->0x8024EC78
+8024ec60: rlwinm.	r0, r30, 0, 24, 31 (000000ff)
+8024ec64: beq-	 ->0x8024EC70
+8024ec68: lfs	f1, 0x001C (r31)
+8024ec6c: b	->0x8024EC8C
+8024ec70: lfs	f1, 0x0018 (r31)
+8024ec74: b	->0x8024EC8C
+8024ec78: rlwinm.	r0, r30, 0, 24, 31 (000000ff)
+8024ec7c: beq-	 ->0x8024EC88
+8024ec80: lfs	f1, 0x0028 (r31)
+8024ec84: b	->0x8024EC8C
+8024ec88: lfs	f1, 0x0024 (r31)
+8024ec8c: lwz	r3, 0x0014 (sp)
+8024ec90: bl	->0x8036F8BC
+8024ec94: lwz	r3, 0x0014 (sp)
+8024ec98: li	r4, 255
+8024ec9c: li	r5, 1024
+8024eca0: bl	->0x8022F3D8
+8024eca4: lwz	r3, 0x0014 (sp)
+8024eca8: bl	->0x80370928
+8024ecac: lwz	r0, 0x002C (sp)
+8024ecb0: lwz	r31, 0x0024 (sp)
+8024ecb4: lwz	r30, 0x0020 (sp)
+8024ecb8: lwz	r29, 0x001C (sp)
+8024ecbc: lwz	r28, 0x0018 (sp)
+8024ecc0: addi	sp, sp, 40
+8024ecc4: mtlr	r0
+8024ecc8: blr

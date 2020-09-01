@@ -154,15 +154,52 @@ rlwinm \reg, \reg, 8, 0xFFFF # Loads major and minor scene into bottom of reg
 .set HSD_PadRumbleActiveID,0x80378430
 
 ## GObj functions
-.set GObj_Create,0x803901f0
+.set GObj_Create,0x803901f0 #(obj_type,subclass,priority)
 .set GObj_Initialize,0x80390b68
 .set GObj_Destroy,0x80390228
-.set GObj_AddProc,0x8038fd54
+.set GObj_AddProc,0x8038fd54 # (obj,func,priority)
 .set GObj_RemoveProc,0x8038fed4
+.set GObj_AddToObj,0x80390A70 #(gboj,obj_kind,obj_ptr)
+.set GObj_SetupGXLink, 0x8039069c #(gobj,function,gx_link,priority)
 
 ## JObj Functions
 .set JObj_GetJObjChild,0x80011e24
-.set JObj_RemoveAnimAll,0x8036f6b4
+.set JObj_LoadJoint, 0x80370E44 #(jobj_desc_ptr)
+.set JObj_RemoveAnimAll,0x8036f6b4 # (jobj)
+.set JObj_AddAnim, 0x8036FA10 # (jobj,an_joint,mat_joint,sh_joint)
+.set JObj_AddAnimAll, 0x8036FB5C # (jobj,an_joint,mat_joint,sh_joint)
+.set JObj_ReqAnimAll, 0x8036F8BC #(HSD_JObj* jobj, f32 frame)
+.set JObj_AnimAll, 0x80370928 #(jobj)
+.set JObj_ClearFlagsAll, 0x80371F9C #(jobj,flags)
+.set JObj_SetFlags, 0x80371D00 # (jobj,flags)
+.set JObj_SetFlagsAll, 0x80371D9c # (jobj,flags)
+
+## JOjb flags
+#JOBJ_SKELETON         = (1 << 0) 1
+#JOBJ_SKELETON_ROOT    = (1 << 1) 2
+#JOBJ_ENVELOPE_MODEL   = (1 << 2) 4
+#JOBJ_CLASSICAL_SCALE  = (1 << 3) 8
+#JOBJ_HIDDEN           = (1 << 4) 16
+#JOBJ_PTCL             = (1 << 5) 32
+#JOBJ_MTX_DIRTY        = (1 << 6) 64
+#JOBJ_LIGHTING         = (1 << 7) 128
+#JOBJ_TEXGEN           = (1 << 8) 256
+#JOBJ_INSTANCE         = (1 << 12) 512
+#JOBJ_PBILLBOARD       = (1 << 13) 1024
+#JOBJ_SPLINE           = (1 << 14) 2048
+#JOBJ_FLIP_IK          = (1 << 15)
+#JOBJ_SPECULAR         = (1 << 16)
+#JOBJ_USE_QUATERNION   = (1 << 17)
+#JOBJ_NULL_OBJ         = (0 << 21)
+#JOBJ_JOINT1           = (1 << 21)
+#JOBJ_JOINT2           = (2 << 21)
+#JOBJ_EFFECTOR         = (3 << 21)
+#JOBJ_USER_DEF_MTX     = (1 << 23)
+#JOBJ_MTX_INDEP_PARENT = (1 << 24)
+#JOBJ_MTX_INDEP_SRT    = (1 << 25)
+#JOBJ_ROOT_OPA         = (1 << 28)
+#JOBJ_ROOT_XLU         = (1 << 29)
+#JOBJ_ROOT_TEXEDGE     = (1 << 30)
 
 ## Text functions
 .set Text_CreateStruct,0x803a6754

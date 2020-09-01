@@ -1,0 +1,55 @@
+
+0045310c Stock Numbers
+====== 
+Screens
+
+00479D30
+00479D31 Adress storing screens 
+004D68BC Address of Previous Screen
+
+Example full Values on  00479D30
+00000100 # this is on title screen coming from menus 
+18180001 # This is on preview game fro mtitle screen 
+18180000 # this is on preview video from title screen 
+01010000 # This is on Main Menu from Title 
+
+Screen Values 
+00 Title
+01 Menus
+02 Melee CSS 
+03 REgular Class CSS
+04 Regular Adventure CSS
+05 All Start CSS
+06 debug mode or tournament melee css ?????
+07 ?????
+08 Event MAtch CSS USed for Online
+09 ????
+0A Camera Mode 
+0B Gallery
+0C Lottery 
+0D Collection Screen
+0E ?????
+0F Stadium Target Test CSS
+10 Special Sudden Death CSS 
+11 Inivisble Melee CSS 
+12 Slo Mo Melee CSS 
+13 Lightining Melee CSS
+
+18 ??? (Game?)
+
+1C Traning CSS
+1D Tiny Melee CSS
+1E Giant Melee CSS
+1F Stamina Mode CSS 
+
+20 Stadium Home Run Contest CSS
+21 Multi Man Melee 10 CSS
+22 Multi Man Melee 100 CSS
+23 Multi Man Melee 3 minute CSS
+24 Multi Man Melee 15 minute CSS
+25 Multi Man Melee endless melee CSS
+26 Multi Man Melee cruel melee CSS 
+
+2A Fixed Camera CSS 
+2B Event Match CSS Game?
+2C Single Button Melee CSS
