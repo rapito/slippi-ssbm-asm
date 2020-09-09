@@ -3,6 +3,14 @@
 ################################################################################
 
 .include "Common/Common.s"
+
+
+# Playing a sound just to know this is being hit
+li	r3, 3
+branchl r12, SFX_Menu_CommonSound
+branchl r12, 0x8024f924 # branch to adress after input is captured for A press on the think function.
+b CreateDialog_Exit
+
 .set REG_DLG_GOBJ, 29
 .set REG_DLG_JOBJ, 28
 
@@ -49,50 +57,9 @@ branchl r12, GObj_AddToObj # 0x80390A70
 # AddGXLink
 mr r3, REG_DLG_GOBJ
 load r4, 0x80391070 # GX Callback func to use
-li r5, 6 # Assigns the gx_link index
+li r5, 4 # Assigns the gx_link index
 li r6, 0x80 # sets the priority
 branchl r12, GObj_SetupGXLink # 0x8039069c
-
-# AddAnimAll
-mr r3, REG_DLG_JOBJ
-load r4, JOBJ_DESC_DLG_ANIM_JOINT
-load r5, JOBJ_DESC_DLG_MAT_JOINT
-load r6, JOBJ_DESC_DLG_SHAPE_JOINT
-branchl r12, JObj_AddAnimAll #0x8036FB5C
-
-# ReqAnimAll
-loadf f1, r3, 0x00000000000000000 # start frame
-mr r3, REG_DLG_JOBJ
-branchl r12, JObj_ReqAnimAll #0x8036F8BC
-# AnimAll
-mr r3, REG_DLG_JOBJ
-branchl r12, JObj_AnimAll #0x80370928
-
-
-# GetJObj is called after the above on the snapshot menu, so I'm trying to use it, however
-# it stores a lot of values on some offset of the sp which I'm not really sure where
-# they are further used so I'm commenting them out
-li	r0, 8
-crclr	6
-#stw	r0, 0x0008 (sp)
-li	r0, 10
-li	r3, 11
-#stw	r0, 0x000C (sp)
-li	r5, 13
-li	r0, -1
-#stw	r3, 0x0010 (sp)
-mr r3, REG_DLG_JOBJ
-addi	r4, sp, 0x035C # This is me trying to access the memory I freed upstairs (dunno if this is a valid offset)
-#stw	r5, 0x0014 (sp)
-li	r5, 0
-li	r6, 2
-#stw	r0, 0x0018 (sp)
-li	r7, 4
-li	r8, 5
-li	r9, 6
-li	r10, 7
-branchl r12, JObj_GetJObjChild# 0x80011E24
-# the above is all stolen from: 8025888c - 802588d8
 
 # schedules original think function on the erase data menu
 #mr r3, REG_DLG_GOBJ # GOBJ
@@ -128,4 +95,3 @@ ThinkDialog_Exit:
   blr
 
 CreateDialog_Exit:
-

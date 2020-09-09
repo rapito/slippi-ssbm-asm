@@ -274,6 +274,7 @@ rlwinm \reg, \reg, 8, 0xFFFF # Loads major and minor scene into bottom of reg
 .set SFX_StopSFXInstance, 0x800236b8
 .set Audio_AdjustMusicSFXVolume,0x80025064
 .set SFX_Menu_CommonSound,0x80024030
+.set SFX_PlaySoundAtFullVolume, 0x800237a8 #SFX_PlaySoundAtFullVolume(r3=soundid,r4=volume?,r5=priority) 
 
 ## Scene/input-related functions
 .set NoContestOrRetry_,0x8016cf4c

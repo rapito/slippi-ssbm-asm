@@ -271,40 +271,32 @@ FN_OnlineSubmenuThink_HANDLE_LOGOUT:
 li	r3, 3
 branchl r12, SFX_Menu_CommonSound
 
-backup
-
-lwz	r3, -0x3E68 (r13)
-branchl r12, 0x8038fe24 # address that calls function(8038fe24) maybe allows input in the dialog and blocks them in the erase menu?
-
-# Create GObj on snapshot menu
-li r3, 6 # GObj Type (6 is item type?)
-li r4, 7 # On-Pause Function (dont run on pause)
-li r5, 128 # some type of priority
-branchl r12, GObj_Create
-mr REG_DLG_GOBJ, r3 # store result
-
-# Create JOBJ
-#load r3, 0x804a0a78
-#lwz r3, 0x0(r3)
-load r3, 0x811f9054
-branchl r12, 0x80370E44 # (this func only uses r3)
-mr REG_DLG_JOBJ, r3 # store result
-
-# Add JOBJ to GObj
-mr r3,REG_DLG_GOBJ
-lbz	r4, -0x3E57 (r13)
-mr r5,REG_DLG_JOBJ
-branchl r12, 0x80390A70
-
-# AddGXLink
-mr r3, REG_DLG_GOBJ
-load r4, 0x80391070 # GX Callback func to use
-li r5, 0x6 # Assigns the gx_link index
-li r6, 128 # sets the priority
-branchl r12, 0x8039069c
+#branchl r12, FN_CREATE_DIALOG
 
 
-restore
+load r4, 0x81399782
+
+load r13, 0x804db6a0
+load r3, 0x81363e20
+stw r3, -0x3E68(r13)
+
+load r25, 0x804ce3e4
+load r26, 0x804ce380
+load r27, 0x804a04f0
+
+load r28, 0x81399780
+load r3, 0x04000000
+stw r3, 0(r31)
+
+load r29, 0x803ef870
+load r3, 0x00000000
+stw r3, 0(r31)
+
+load r31, 0x81399280
+load r3, 0x000001ff
+stw r3, 0(r31)
+
+branchl r12, 0x8024f910 # branch to adress after input is captured for A press on the think function.
 
 
 b FN_OnlineSubmenuThink_INPUT_HANDLERS_END
@@ -485,6 +477,32 @@ blrl
 .short 0x0648
 .short 0x0649
 .short 0x064A
+
+FN_CREATE_DIALOG:
+# Create GObj on snapshot menu
+li r3, 6 # GObj Type (6 is item type?)
+li r4, 7 # On-Pause Function (dont run on pause)
+li r5, 128 # some type of priority
+branchl r12, GObj_Create
+mr REG_DLG_GOBJ, r3 # store result
+
+# Create JOBJ
+load r3, 0x811f9054
+branchl r12, 0x80370E44 # (this func only uses r3)
+mr REG_DLG_JOBJ, r3 # store result
+
+# Add JOBJ to GObj
+mr r3,REG_DLG_GOBJ
+lbz	r4, -0x3E57 (r13)
+mr r5,REG_DLG_JOBJ
+branchl r12, 0x80390A70
+
+# AddGXLink
+mr r3, REG_DLG_GOBJ
+load r4, 0x80391070 # GX Callback func to use
+li r5, 0x4 # Assigns the gx_link index
+li r6, 128 # sets the priority
+branchl r12, 0x8039069c
 
 EXIT:
 lis r3, 0x804A
