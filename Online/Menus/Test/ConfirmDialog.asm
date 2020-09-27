@@ -15,9 +15,9 @@
 #.set JOBJ_DESC_DLG_SHAPE_JOINT, 0x811fc4e0 # memory address of dialog shape joint
 
 #.set JOBJ_DESC_DLG, 0x804a0938 # memory address of dialog jobj # value is actually: 81202714
-#.set JOBJ_DESC_DLG_ANIM_JOINT, 0x804a093C # memory address of dialog anim joint
-#.set JOBJ_DESC_DLG_MAT_JOINT, 0x804a0940 # memory address of dialog mat joint
-#.set JOBJ_DESC_DLG_SHAPE_JOINT, 0x804a0944 # memory address of dialog shape joint
+#.set JOBJ_DESC_DLG_ANIM_JOINT, 0x804a093C # memory address of dialog anim joint: 81205820
+#.set JOBJ_DESC_DLG_MAT_JOINT, 0x804a0940 # memory address of dialog mat joint: 81205AA8
+#.set JOBJ_DESC_DLG_SHAPE_JOINT, 0x804a0944 # memory address of dialog shape joint: 81205BA0
 
 # 804a0938: Pointer to Dialog DAT file
 # 80250170: Function that opens/creates erase data menu
@@ -72,7 +72,26 @@ mr r3, REG_DLG_GOBJ
 load r4, 0x80391070 # GX Callback func to use
 li r5, 6 # Assigns the gx_link index
 li r6, 0x80 # sets the priority
-branchl r12, GObj_SetupGXLink # 0x8039069c
+branchl r12, GObj_SetupGXLink # 0xz
+
+#8137d238 d250
+#C0600000 # -3.5
+#400c0000 # 3.5
+
+# 0x38: X Position
+# 0x50: Real X Position
+
+mr r3,REG_DLG_JOBJ # jobj
+addi r4, sp, 0x34 # pointer where to store return value
+mr r5, 10 # index
+li r6, -1
+branchl r12, JObj_GetJObjChild
+
+# Set invisible flag on JObj
+lwz r4, 0x34(sp)
+lwz r3, 0x14(r4) # Get current flags
+ori r3, r3, 0x10 # Set invisible flag
+stw r3, 0x14(r4)
 
 ; load r4, JOBJ_DESC_DLG_ANIM_JOINT
 ; load r5, JOBJ_DESC_DLG_MAT_JOINT

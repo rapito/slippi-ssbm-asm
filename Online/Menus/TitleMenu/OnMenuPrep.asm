@@ -10,7 +10,32 @@
 .set REG_DLG_JOBJ, 26
 
 .set JOBJ_DESC_DLG, 0x81202714 # memory address of dialog jobj # value is actually: 81202714
+.set JOBJ_DESC_DLG_ANIM_JOINT, 0x81205820 # memory address of dialog anim joint: 81205820
+.set JOBJ_DESC_DLG_MAT_JOINT, 0x81205AA8 # memory address of dialog mat joint: 81205AA8
+.set JOBJ_DESC_DLG_SHAPE_JOINT, 0x81205BA0 # memory address of dialog shape joint: 81205BA0
+.set JOBJ_CHILD_OS_1, 0x34 # memory address of descriptor of progress bar?
 
+# 81205820
+# 81205AA8
+# 81205BA0
+
+# 81205848
+# 81205ac0
+# 81205bb8
+
+# 81205884
+# 81205ae4
+# 81205bdc
+
+# 812058c0
+# 81205b08
+# 81205c00
+
+#8137cc38
+#41700000
+# 812058fc
+# 81205b2c
+# 81205c24
 backup
 
 ################################################################################
@@ -271,39 +296,7 @@ b FN_OnlineSubmenuThink_TRIGGER_EXI_MSG
 
 FN_OnlineSubmenuThink_HANDLE_LOGOUT:
 
-backup
-
-
-
-# Create GObj on snapshot menu
-li r3, 6 # GObj Type (6 is menu type?)
-li r4, 7 # On-Pause Function (dont run on pause)
-li r5, 0x80 # some type of priority
-branchl r12, GObj_Create
-mr REG_DLG_GOBJ, r3 # 0x803901f0 store result
-
-# Create JOBJ
-load r3, JOBJ_DESC_DLG
-#lwz r3, 0x0(r3) # JOBJ for dialog
-branchl r12, JObj_LoadJoint # 0x80370E44 # (this func only uses r3)
-mr REG_DLG_JOBJ, r3 # store result
-
-# Add JOBJ to GObj
-mr r3,REG_DLG_GOBJ
-li	r4, 3
-mr r5,REG_DLG_JOBJ
-branchl r12, GObj_AddToObj # 0x80390A70
-
-# AddGXLink
-mr r3, REG_DLG_GOBJ
-load r4, 0x80391070 # GX Callback func to use
-li r5, 6 # Assigns the gx_link index
-li r6, 0x80 # sets the priority
-branchl r12, GObj_SetupGXLink # 0x8039069c
-
-
-restore
-#bl FN_CREATE_DIALOG
+bl FN_CREATE_DIALOG
 
 b FN_OnlineSubmenuThink_INPUT_HANDLERS_END
 
@@ -485,33 +478,160 @@ blrl
 .short 0x064A
 
 FN_CREATE_DIALOG:
+.set REG_F_0, 21
+.set REG_F_1, 22
+
 backup
 
-# Create GObj
-li r3, 7 # GObj Type (6 is menu type?) 7
-li r4, 8 # On-Pause Function (dont run on pause) 8
+
+# Get float value 0.0
+li r3, 10
+bl IntToFloat
+mr REG_F_0, f1
+
+# Get float value 1.0
+li r3, 1
+bl IntToFloat
+mr REG_F_1, f1
+
+
+
+# Create GObj on snapshot menu
+li r3, 6 # GObj Type (6 is menu type?)
+li r4, 7 # On-Pause Function (dont run on pause)
 li r5, 0x80 # some type of priority
 branchl r12, GObj_Create
 mr REG_DLG_GOBJ, r3 # 0x803901f0 store result
 
 # Create JOBJ
 load r3, JOBJ_DESC_DLG
-lwz r3, 0x0(r3) # JOBJ for dialog
+#lwz r3, 0x0(r3) # JOBJ for dialog
 branchl r12, JObj_LoadJoint # 0x80370E44 # (this func only uses r3)
 mr REG_DLG_JOBJ, r3 # store result
 
 # Add JOBJ to GObj
 mr r3,REG_DLG_GOBJ
-li	r4, 3 # object kind 3 is jobj
+li	r4, 3
 mr r5,REG_DLG_JOBJ
-branchl r12, GObj_AddToObj
+branchl r12, GObj_AddToObj # 0x80390A70
+
+
+# Hide Interrogation Mark
+mr r3,REG_DLG_JOBJ # jobj
+addi r4, sp, JOBJ_CHILD_OS_1 # pointer where to store return value
+li r5, 10 # index
+li r6, -1
+branchl r12, JObj_GetJObjChild
+# Hide Interrogation Mark !
+
+# Set invisible flag on JObj
+lwz r3, JOBJ_CHILD_OS_1(sp) # get return obj
+li r4, 0x10
+branchl r12, JObj_SetFlagsAll # 0x80371D9c
+
+# Hide Progress Bar
+mr r3,REG_DLG_JOBJ # jobj
+addi r4, sp, JOBJ_CHILD_OS_1 # pointer where to store return value
+li r5, 11 # index
+li r6, -1
+branchl r12, JObj_GetJObjChild
+
+# Set invisible flag on JObj
+lwz r3, JOBJ_CHILD_OS_1(sp) # get return obj
+li r4, 0x10
+branchl r12, JObj_SetFlagsAll # 0x80371D9c
+# Hide Progress Bar!
+
 
 # AddGXLink
 mr r3, REG_DLG_GOBJ
-load r4, 0x80253e5c # GX Callback func to use 803a84bc, 80391070  80253e5c
-li r5, 8 # Assigns the gx_link index 4, 7
+load r4, 0x80391070 # GX Callback func to use
+li r5, 6 # Assigns the gx_link index
 li r6, 0x80 # sets the priority
-branchl r12, GObj_SetupGXLink #0x8039069c
+branchl r12, GObj_SetupGXLink # 0x8039069c
+
+# Create Proc to our Think function
+bl FN_EraseDataDialogThink
+mflr r4 # Function
+li r5, 4 # Priority
+branchl	r12, GObj_AddProc
+
+# Add Animations to JObj
+mr r3, REG_DLG_JOBJ
+load r4, JOBJ_DESC_DLG_ANIM_JOINT
+load r5, JOBJ_DESC_DLG_MAT_JOINT
+load r6, JOBJ_DESC_DLG_SHAPE_JOINT
+branchl r12, JObj_AddAnimAll #, 0x8036FB5C # (jobj,an_joint,mat_joint,sh_joint)
+
+
+# Configure "No" Button
+mr r3,REG_DLG_JOBJ # jobj
+addi r4, sp, JOBJ_CHILD_OS_1 # pointer where to store return value
+li r5, 6 # index
+li r6, -1
+branchl r12, JObj_GetJObjChild
+
+
+# Move NO to the Left Position
+lwz r3, JOBJ_CHILD_OS_1(sp) # jobj child
+load r4, 0xC0600000
+stw r4, 0x38(r3)
+# Configure "No" Button!
+
+# Configure "Yes" Button
+mr r3,REG_DLG_JOBJ # jobj
+addi r4, sp, JOBJ_CHILD_OS_1 # pointer where to store return value
+li r5, 7 # index
+li r6, -1
+branchl r12, JObj_GetJObjChild
+
+
+# Move YES to Right Position
+lwz r3, JOBJ_CHILD_OS_1(sp) # jobj child
+load r4, 0x405c0000
+stw r4, 0x38(r3)
+# Configure "Yes" Button!
+
+
+mr r3, REG_DLG_JOBJ
+branchl r12, JObj_ReqAnimAll # (jobj, frames)
+
+mr r3, REG_DLG_JOBJ
+branchl r12, JObj_AnimAll # (jobj, frames)
+
+restore
+blr
+
+IntToFloat:
+stwu	r1,-0x100(r1)	# make space for 12 registers
+stfs  f2,0x8(r1)
+
+lis	r0, 0x4330
+lfd	f2, -0x6758 (rtoc)
+xoris	r3, r3,0x8000
+stw	r0,0xF0(sp)
+stw	r3,0xF4(sp)
+lfd	f1,0xF0(sp)
+fsubs	f1,f1,f2		#Convert To Float
+
+lfs  f2,0x8(r1)
+addi	r1,r1,0x100	# release the space
+blr
+
+################################################################################
+# Routine: FN_EraseDataDialogThink
+# ------------------------------------------------------------------------------
+# Description: Syncs RNG when playing online
+################################################################################
+
+FN_EraseDataDialogThink:
+blrl
+backup
+lwz REG_DLG_JOBJ, 0x28(r3) # Get Jobj
+
+
+mr r3, REG_DLG_JOBJ
+branchl r12, JObj_AnimAll
 
 restore
 blr

@@ -85,13 +85,13 @@ Values when open on options erased Data
 
 0040672A
 
-013A16C0 # Dialog ID 
+013A16C0 # Dialog ID
 013A16C1 # Dialog STATE ON/OFF
 
 013A16C0 00000000 # SHOW DIALOG TO DELETE HIDDEN CHARS
 013A16C0 00010000 # HIDE DIALOG TO DELETE HIDDEN CHARS
 # First byte is selected option
-# second byte is open dialog or not 
+# second byte is open dialog or not
 # 3rd byte is hovering yes or no
 # 4th dunno
 
@@ -105,8 +105,8 @@ offset
 8024f988 # move up
 8024f8fc # on hit start/A
 8024f910 function address to start showing dialog
-8024f7a8 function address to start closing dialog 
-802faf0 function address to set selected option
+8024f7a8 function address to start closing dialog
+8024faf0 function address to set selected option
 8024fb1c func addr to set selected option ends
 
 set_dlg_cfg
