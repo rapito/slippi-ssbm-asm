@@ -787,15 +787,22 @@ FN_LogoutDialogThink_SwitchOption:
 li	r3, 2
 branchl r12, SFX_Menu_CommonSound
 
-xori r3, REG_DLG_SELECTED_OPTION, 0x1
+xori r3, REG_DLG_SELECTED_OPTION, 0x1 # alternate selected option
 stb r3, DLG_DT_SELECTED_OPTION(REG_DLG_USER_DATA_ADDR) # Store to proper user data offset
+
 
 bl FN_LogoutDialogThink_ResetInputDelay
 b FN_LogoutDialogThink_Exit
 
 FN_LogoutDialogThink_DoLogout:
+# only logout if selected option is YES
+cmpwi REG_DLG_SELECTED_OPTION, DLG_OPTION_YES
+bne FN_LogoutDialogThink_CloseDialog
 
 b FN_LogoutDialogThink_CloseDialog
+
+li r4, CONST_SlippiCmdLogOut
+b FN_OnlineSubmenuThink_TRIGGER_EXI_MSG
 
 FN_LogoutDialogThink_CloseDialog:
 li	r3, 0
