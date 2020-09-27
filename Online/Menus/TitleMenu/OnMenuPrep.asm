@@ -799,10 +799,16 @@ FN_LogoutDialogThink_DoLogout:
 cmpwi REG_DLG_SELECTED_OPTION, DLG_OPTION_YES
 bne FN_LogoutDialogThink_CloseDialog
 
-b FN_LogoutDialogThink_CloseDialog
 
 li r4, CONST_SlippiCmdLogOut
-b FN_OnlineSubmenuThink_TRIGGER_EXI_MSG
+# Use the scene buffer cause it's not being used for anything
+lwz r3, OFST_R13_SB_ADDR(r13)
+stb r4, 0(r3) # Store command byte
+li r4, 1
+li r5, CONST_ExiWrite
+branchl r12, FN_EXITransferBuffer
+
+b FN_LogoutDialogThink_CloseDialog
 
 FN_LogoutDialogThink_CloseDialog:
 li	r3, 0
