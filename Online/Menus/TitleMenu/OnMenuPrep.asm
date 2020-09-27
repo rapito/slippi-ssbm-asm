@@ -5,37 +5,48 @@
 .include "Common/Common.s"
 .include "Online/Online.s"
 
-.set REG_FG_USER_DISPLAY, 29
-.set REG_DLG_GOBJ, 25
-.set REG_DLG_JOBJ, 26
+# general
+.set REG_FG_USER_DISPLAY, 21
+.set REG_DLG_MENU_GOBJ_ADDR, REG_FG_USER_DISPLAY+1
+.set REG_DLG_BUFFER_SIZE, REG_DLG_MENU_GOBJ_ADDR+1
+.set REG_DLG_BUFFER_ADDRESS, REG_DLG_BUFFER_SIZE+1
+.set REG_DLG_GOBJ, REG_DLG_BUFFER_ADDRESS+1
+.set REG_DLG_JOBJ, REG_DLG_GOBJ+1
+.set REG_DLG_USER_DATA_ADDR, REG_DLG_JOBJ+1
+.set REG_DLG_SELECTED_OPTION, REG_DLG_USER_DATA_ADDR+1 # 0: NO, 1: YES
+.set REG_DLG_TEXT_STRUCT_ADDR, REG_DLG_SELECTED_OPTION+1
+.set REG_TEXT_PROPERTIES, REG_DLG_TEXT_STRUCT_ADDR+1
+
+# floats
+.set REG_F_0, 22
+.set REG_F_1, 23
+
+.set DLG_JOBJ_OFFSET, 0x28 # offset from GOBJ to HSD Object (Jobj we assigned)
+.set DLG_USER_DATA_OFFSET, 0x2C # offset from GOBJ to entity data
+.set DLG_OPTION_YES, 0x1
+.set DLG_OPTION_NO, 0x0
+.set DLG_INPUT_DELAY, 0xA
+
+# Dialog Data Table
+.set DLG_DT_INPUT_DELAY, 0x0 # u8
+.set DLG_DT_SELECTED_OPTION, DLG_DT_INPUT_DELAY+1 # u8
+.set DLG_DT_SUBMENU_GOBJ_ADDR, DLG_DT_SELECTED_OPTION+1 # u32
+.set DLG_DT_TEXT_STRUCT_ADDR, DLG_DT_SUBMENU_GOBJ_ADDR+4 # u32
+.set DLG_DT_SIZE, DLG_DT_TEXT_STRUCT_ADDR + 4
+
+.set MENU_DLG_USER_DATA_OFFSET, 0x8
 
 .set JOBJ_DESC_DLG, 0x81202714 # memory address of dialog jobj # value is actually: 81202714
 .set JOBJ_DESC_DLG_ANIM_JOINT, 0x81205820 # memory address of dialog anim joint: 81205820
 .set JOBJ_DESC_DLG_MAT_JOINT, 0x81205AA8 # memory address of dialog mat joint: 81205AA8
 .set JOBJ_DESC_DLG_SHAPE_JOINT, 0x81205BA0 # memory address of dialog shape joint: 81205BA0
-.set JOBJ_CHILD_OS_1, 0x34 # memory address of descriptor of progress bar?
+.set JOBJ_CHILD_OFFSET, 0x34 # Pointer to store Child JOBJ on the SP
 
-# 81205820
-# 81205AA8
-# 81205BA0
+.set PAD_LEFT, 0x40 # on r4 is 00040000
+.set PAD_RIGHT, 0x80 # on r4 is 00080000
+.set PAD_A, 0x01 # on r4 is 00000100
+.set PAD_B, 0x02 # on r4 is 00000200
 
-# 81205848
-# 81205ac0
-# 81205bb8
-
-# 81205884
-# 81205ae4
-# 81205bdc
-
-# 812058c0
-# 81205b08
-# 81205c00
-
-#8137cc38
-#41700000
-# 812058fc
-# 81205b2c
-# 81205c24
 backup
 
 ################################################################################
@@ -207,11 +218,17 @@ blr
 # Description: Think function for online submenu
 ################################################################################
 .set REG_FG_USER_DISPLAY, 27
-
+.set REG_SM_GOBJ, 19
 FN_OnlineSubmenuThink:
 blrl
 
 backup
+mr REG_SM_GOBJ, r3
+
+
+lwz r3, MENU_DLG_USER_DATA_OFFSET(REG_SM_GOBJ)
+cmpwi r3, 0
+bne FN_OnlineSubmenuThink_INPUT_HANDLERS_END
 
 ################################################################################
 # Most of the below is ported code from function 8022cc28 (Menus_RegularMatch)
@@ -478,25 +495,48 @@ blrl
 .short 0x064A
 
 FN_CREATE_DIALOG:
-.set REG_F_0, 21
-.set REG_F_1, 22
 
 backup
 
+# Create User Data:
+# We will be adding a very small buffer to be able to track the selected option
+# Get Memory Buffer for Chat Window Data Table
+li REG_DLG_BUFFER_SIZE, REG_DLG_BUFFER_SIZE # buffer size
+
+mr r3, REG_DLG_BUFFER_SIZE # Buffer Size
+branchl r12, HSD_MemAlloc
+mr REG_DLG_BUFFER_ADDRESS, r3 # save result address into REG_DLG_BUFFER_ADDRESS
+
+# Zero out CSS data table
+mr r4, REG_DLG_BUFFER_SIZE # buffer size
+branchl r12, Zero_AreaLength
+
+# Set Buffer Initial Data
+li r3, 0x0
+stb r3, DLG_DT_INPUT_DELAY(REG_DLG_BUFFER_ADDRESS)
+
+# 0: means no is selected, 1: yes is selected
+li r3, DLG_OPTION_NO # Initial Selected Option
+stb r3, DLG_DT_SELECTED_OPTION(REG_DLG_BUFFER_ADDRESS)
+
+# save submenu gobj
+mr r3, REG_SM_GOBJ
+stw r3, DLG_DT_SUBMENU_GOBJ_ADDR(REG_DLG_BUFFER_ADDRESS)
+
+# Save Pointer to User data To keep track of it
+stw REG_DLG_BUFFER_ADDRESS, MENU_DLG_USER_DATA_OFFSET(REG_SM_GOBJ)
 
 # Get float value 0.0
-li r3, 10
+li r3, 0
 bl IntToFloat
-mr REG_F_0, f1
+fmr REG_F_0, f1
 
 # Get float value 1.0
 li r3, 1
 bl IntToFloat
-mr REG_F_1, f1
+fmr REG_F_1, f1
 
-
-
-# Create GObj on snapshot menu
+# Create GObj
 li r3, 6 # GObj Type (6 is menu type?)
 li r4, 7 # On-Pause Function (dont run on pause)
 li r5, 0x80 # some type of priority
@@ -518,43 +558,29 @@ branchl r12, GObj_AddToObj # 0x80390A70
 
 # Hide Interrogation Mark
 mr r3,REG_DLG_JOBJ # jobj
-addi r4, sp, JOBJ_CHILD_OS_1 # pointer where to store return value
+addi r4, sp, JOBJ_CHILD_OFFSET # pointer where to store return value
 li r5, 10 # index
 li r6, -1
 branchl r12, JObj_GetJObjChild
-# Hide Interrogation Mark !
 
 # Set invisible flag on JObj
-lwz r3, JOBJ_CHILD_OS_1(sp) # get return obj
+lwz r3, JOBJ_CHILD_OFFSET(sp) # get return obj
 li r4, 0x10
 branchl r12, JObj_SetFlagsAll # 0x80371D9c
 
 # Hide Progress Bar
 mr r3,REG_DLG_JOBJ # jobj
-addi r4, sp, JOBJ_CHILD_OS_1 # pointer where to store return value
+addi r4, sp, JOBJ_CHILD_OFFSET # pointer where to store return value
 li r5, 11 # index
 li r6, -1
 branchl r12, JObj_GetJObjChild
 
 # Set invisible flag on JObj
-lwz r3, JOBJ_CHILD_OS_1(sp) # get return obj
+lwz r3, JOBJ_CHILD_OFFSET(sp) # get return obj
 li r4, 0x10
 branchl r12, JObj_SetFlagsAll # 0x80371D9c
 # Hide Progress Bar!
 
-
-# AddGXLink
-mr r3, REG_DLG_GOBJ
-load r4, 0x80391070 # GX Callback func to use
-li r5, 6 # Assigns the gx_link index
-li r6, 0x80 # sets the priority
-branchl r12, GObj_SetupGXLink # 0x8039069c
-
-# Create Proc to our Think function
-bl FN_EraseDataDialogThink
-mflr r4 # Function
-li r5, 4 # Priority
-branchl	r12, GObj_AddProc
 
 # Add Animations to JObj
 mr r3, REG_DLG_JOBJ
@@ -563,44 +589,248 @@ load r5, JOBJ_DESC_DLG_MAT_JOINT
 load r6, JOBJ_DESC_DLG_SHAPE_JOINT
 branchl r12, JObj_AddAnimAll #, 0x8036FB5C # (jobj,an_joint,mat_joint,sh_joint)
 
+mr r3, REG_DLG_JOBJ
+fmr f1, REG_F_0
+branchl r12, JObj_ReqAnimAll# (jobj, frames)
 
-# Configure "No" Button
+# Configure "Yes" Button
 mr r3,REG_DLG_JOBJ # jobj
-addi r4, sp, JOBJ_CHILD_OS_1 # pointer where to store return value
+addi r4, sp, JOBJ_CHILD_OFFSET # pointer where to store return value
 li r5, 6 # index
 li r6, -1
 branchl r12, JObj_GetJObjChild
 
-
-# Move NO to the Left Position
-lwz r3, JOBJ_CHILD_OS_1(sp) # jobj child
+# Move to the Left
+lwz r3, JOBJ_CHILD_OFFSET(sp) # jobj child
 load r4, 0xC0600000
-stw r4, 0x38(r3)
-# Configure "No" Button!
-
-# Configure "Yes" Button
-mr r3,REG_DLG_JOBJ # jobj
-addi r4, sp, JOBJ_CHILD_OS_1 # pointer where to store return value
-li r5, 7 # index
-li r6, -1
-branchl r12, JObj_GetJObjChild
-
-
-# Move YES to Right Position
-lwz r3, JOBJ_CHILD_OS_1(sp) # jobj child
-load r4, 0x405c0000
 stw r4, 0x38(r3)
 # Configure "Yes" Button!
 
 
-mr r3, REG_DLG_JOBJ
-branchl r12, JObj_ReqAnimAll # (jobj, frames)
+# Configure "No" Button
+mr r3,REG_DLG_JOBJ # jobj
+addi r4, sp, JOBJ_CHILD_OFFSET # pointer where to store return value
+li r5, 7 # index
+li r6, -1
+branchl r12, JObj_GetJObjChild
 
-mr r3, REG_DLG_JOBJ
-branchl r12, JObj_AnimAll # (jobj, frames)
+# Move to the Right
+lwz r3, JOBJ_CHILD_OFFSET(sp) # jobj child
+load r4, 0x405c0000
+stw r4, 0x38(r3)
+# Configure "No" Button!
+
+# AddGXLink
+mr r3, REG_DLG_GOBJ
+load r4, 0x80391070 # GX Callback func to use
+li r5, 6 # Assigns the gx_link index
+li r6, 0x80 # sets the priority
+branchl r12, GObj_SetupGXLink # 0x8039069c
+
+
+# Add User Data to GOBJ ( Our buffer )
+mr r3, REG_DLG_GOBJ
+li r4, 4 # user data kind
+load r5, HSD_Free # destructor
+mr r6, REG_DLG_BUFFER_ADDRESS # memory pointer of allocated buffer above
+branchl r12, GObj_Initialize # 0x80390b68;
+
+#Create Proc
+mr r3, REG_DLG_GOBJ
+bl FN_LogoutDialogThink
+mflr r4 # Function
+li r5, 4 # Priority
+branchl	r12, GObj_AddProc
 
 restore
 blr
+
+
+################################################################################
+# Routine: FN_LogoutDialogThink
+# ------------------------------------------------------------------------------
+# Description: Handles Confirm Dialog when pressing logout
+################################################################################
+FN_LogoutDialogThink: #801978fc
+blrl
+backup
+
+mr REG_DLG_GOBJ, r3
+lwz REG_DLG_JOBJ, DLG_JOBJ_OFFSET(REG_DLG_GOBJ) # Get Jobj
+lwz REG_DLG_USER_DATA_ADDR, DLG_USER_DATA_OFFSET(REG_DLG_GOBJ) # get address of data buffer
+
+lbz REG_DLG_SELECTED_OPTION, DLG_DT_SELECTED_OPTION(REG_DLG_USER_DATA_ADDR) # Get selected option from bufffer
+lwz REG_DLG_MENU_GOBJ_ADDR, DLG_DT_SUBMENU_GOBJ_ADDR(REG_DLG_USER_DATA_ADDR) # get address of submenu's gboj
+lwz REG_DLG_TEXT_STRUCT_ADDR, DLG_DT_TEXT_STRUCT_ADDR(REG_DLG_USER_DATA_ADDR) # get address of text struct
+
+# Only Initialize Text if needed
+cmpwi REG_DLG_TEXT_STRUCT_ADDR, 0
+bne FN_LogoutDialogThink_ConfigureUI
+
+FN_LogoutDialogThink_InitText:
+
+# INIT PROPERTIES
+bl TEXT_PROPERTIES
+mflr REG_TEXT_PROPERTIES
+
+# Create Text Object
+li r3, 0
+li r4, 1 # gx_link?
+lfs f0, TPO_DLG_LABEL_UNK0(REG_TEXT_PROPERTIES)
+lfs f1, TPO_DLG_LABEL_X_POS(REG_TEXT_PROPERTIES)
+lfs f2, TPO_DLG_LABEL_Y_POS(REG_TEXT_PROPERTIES)
+lfs f3, TPO_DLG_LABEL_UNK0(REG_TEXT_PROPERTIES) # Width?
+lfs f4, TPO_DLG_LABEL_UNK1(REG_TEXT_PROPERTIES) # Unk, 160
+lfs f5, TPO_DLG_LABEL_UNK2(REG_TEXT_PROPERTIES) # Unk, 300
+branchl r12, Text_AllocateTextObject #0x803a5acc
+mr REG_DLG_TEXT_STRUCT_ADDR, r3
+
+# Save Text Struct Address
+mr REG_DLG_TEXT_STRUCT_ADDR, r3
+stw REG_DLG_TEXT_STRUCT_ADDR, DLG_DT_TEXT_STRUCT_ADDR(REG_DLG_USER_DATA_ADDR)
+
+# Initialize Struct Stuff
+li r0, 1
+li r4, 0x13F # Premade Text id "Are you Sure?"
+mr r3, REG_DLG_TEXT_STRUCT_ADDR
+lfs f0, TPO_DLG_LABEL_UNK3(REG_TEXT_PROPERTIES) # Unk, 0.05
+stfs f0, 0x24(r3) # Scaling
+stfs f0, 0x28(r3) # Scaling
+stb r0, 0x4A(REG_DLG_TEXT_STRUCT_ADDR) # Set text to align center
+branchl r12, Text_CopyPremadeTextDataToStruct
+
+FN_LogoutDialogThink_ConfigureUI:
+# Get float value 0.0
+li r3, 0
+bl IntToFloat
+fmr REG_F_0, f1
+
+# Get float value 1.0
+li r3, 1
+bl IntToFloat
+fmr REG_F_1, f1
+
+# Always Animate the dialog
+mr r3, REG_DLG_JOBJ
+branchl r12, JObj_AnimAll
+
+# Configure "No" Button
+mr r3,REG_DLG_JOBJ # jobj
+addi r4, sp, JOBJ_CHILD_OFFSET # pointer where to store return value
+li r5, 7 # index
+li r6, -1
+branchl r12, JObj_GetJObjChild
+
+# Set Animation Frame (frame 0 is turned off, frame 1+ is on)
+fmr f1, REG_F_0 # Turn off
+cmpwi REG_DLG_SELECTED_OPTION, DLG_OPTION_NO
+bne FN_LogoutDialogThink_ConfigureUI_Animate_No
+fmr f1, REG_F_1 # Turn on
+
+FN_LogoutDialogThink_ConfigureUI_Animate_No:
+lwz r3, JOBJ_CHILD_OFFSET(sp) # jobj child
+branchl r12, JObj_ReqAnimAll# (jobj, frames)
+
+lwz r3, JOBJ_CHILD_OFFSET(sp) # jobj child
+branchl r12, JObj_AnimAll
+# Configure "No" Button!
+
+# Configure "Yes" Button
+mr r3,REG_DLG_JOBJ # jobj
+addi r4, sp, JOBJ_CHILD_OFFSET # pointer where to store return value
+li r5, 6 # index
+li r6, -1
+branchl r12, JObj_GetJObjChild
+
+# Set Animation Frame (frame 0 is turned off, frame 1+ is on)
+fmr f1, REG_F_0 # Turn off
+cmpwi REG_DLG_SELECTED_OPTION, DLG_OPTION_YES
+bne FN_LogoutDialogThink_ConfigureUI_Animate_Yes
+fmr f1, REG_F_1 # Turn on
+
+FN_LogoutDialogThink_ConfigureUI_Animate_Yes: # 801979b4
+lwz r3, JOBJ_CHILD_OFFSET(sp) # jobj child
+branchl r12, JObj_ReqAnimAll# (jobj, frames)
+
+lwz r3, JOBJ_CHILD_OFFSET(sp) # jobj child
+branchl r12, JObj_AnimAll
+# Configure "Yes" Button!
+
+# If no delay continue, else branch to exit
+lbz r3, DLG_DT_INPUT_DELAY(REG_DLG_USER_DATA_ADDR) # Initialized Offset
+cmpwi r3, DLG_INPUT_DELAY # minimum of x frames
+blt FN_LogoutDialogThink_Exit
+
+FN_LogoutDialogThink_CheckInputs:
+# Check input and switch option if left or right
+li r3, 0
+branchl r12, Inputs_GetPlayerHeldInputs # 0x801a3680
+
+# Exit function if no input # 0x8019796c
+cmpwi r3, PAD_LEFT
+beq FN_LogoutDialogThink_SwitchOption
+cmpwi r3, PAD_RIGHT
+beq FN_LogoutDialogThink_SwitchOption
+cmpwi r3, PAD_A
+beq FN_LogoutDialogThink_DoLogout
+cmpwi r3, PAD_B
+beq FN_LogoutDialogThink_CloseDialog
+b FN_LogoutDialogThink_Exit
+
+FN_LogoutDialogThink_ResetInputDelay:
+# Mark as initialized
+li r3, 0
+stb r3, DLG_DT_INPUT_DELAY(REG_DLG_USER_DATA_ADDR) # Initialized Offset
+blr
+
+FN_LogoutDialogThink_SwitchOption:
+li	r3, 2
+branchl r12, SFX_Menu_CommonSound
+
+xori r3, REG_DLG_SELECTED_OPTION, 0x1
+stb r3, DLG_DT_SELECTED_OPTION(REG_DLG_USER_DATA_ADDR) # Store to proper user data offset
+
+bl FN_LogoutDialogThink_ResetInputDelay
+b FN_LogoutDialogThink_Exit
+
+FN_LogoutDialogThink_DoLogout:
+
+b FN_LogoutDialogThink_CloseDialog
+
+FN_LogoutDialogThink_CloseDialog:
+li	r3, 0
+branchl r12, SFX_Menu_CommonSound
+
+bl FN_LogoutDialogThink_ResetInputDelay
+
+# remove proc
+mr r3, REG_DLG_GOBJ
+branchl r12, GObj_RemoveProc
+
+# destroy gobj
+mr r3, REG_DLG_GOBJ
+branchl r12, GObj_Destroy
+
+# Delete Text
+mr r3, REG_DLG_TEXT_STRUCT_ADDR
+branchl r12, Text_RemoveText
+
+# Save Pointer to User data To keep track of it
+load r3, 00000000
+stw r3, MENU_DLG_USER_DATA_OFFSET(REG_DLG_MENU_GOBJ_ADDR)
+
+b FN_LogoutDialogThink_Exit
+
+FN_LogoutDialogThink_Exit:
+
+# Mark as initialized
+lbz r3, DLG_DT_INPUT_DELAY(REG_DLG_USER_DATA_ADDR) # Initialized Offset
+addi r3, r3, 1
+stb r3, DLG_DT_INPUT_DELAY(REG_DLG_USER_DATA_ADDR) # Initialized Offset
+
+restore
+blr
+
 
 IntToFloat:
 stwu	r1,-0x100(r1)	# make space for 12 registers
@@ -618,23 +848,49 @@ lfs  f2,0x8(r1)
 addi	r1,r1,0x100	# release the space
 blr
 
-################################################################################
-# Routine: FN_EraseDataDialogThink
-# ------------------------------------------------------------------------------
-# Description: Syncs RNG when playing online
-################################################################################
 
-FN_EraseDataDialogThink:
+################################################################################
+# Properties
+################################################################################
+TEXT_PROPERTIES:
 blrl
-backup
-lwz REG_DLG_JOBJ, 0x28(r3) # Get Jobj
+# Base Properties
+.set TPO_BASE_Z, 0
+.float 9
+.set TPO_BASE_CANVAS_SCALING, TPO_BASE_Z + 4
+.float 0.1
 
+# Header properties
+.set TPO_DLG_LABEL_X, TPO_BASE_CANVAS_SCALING + 4
+.float 70
+.set TPO_DLG_LABEL_Y, TPO_DLG_LABEL_X + 4
+.float 23
+.set TPO_DLG_LABEL_SIZE, TPO_DLG_LABEL_Y + 4
+.float 0.50
 
-mr r3, REG_DLG_JOBJ
-branchl r12, JObj_AnimAll
+.set TPO_DLG_LABEL_X_POS, TPO_DLG_LABEL_SIZE+4
+.float -5.5
+.set TPO_DLG_LABEL_Y_POS, TPO_DLG_LABEL_X_POS+4
+.float -2.8
+.set TPO_DLG_LABEL_UNK0,  TPO_DLG_LABEL_Y_POS+4
+.float 23
+.set TPO_DLG_LABEL_UNK1, TPO_DLG_LABEL_UNK0+4
+.float 250
+.set TPO_DLG_LABEL_UNK2, TPO_DLG_LABEL_UNK1+4
+.float 5
+.set TPO_DLG_LABEL_UNK3, TPO_DLG_LABEL_UNK2+4
+.float 0.05
+.set TPO_DLG_LABEL_UNK0, TPO_DLG_LABEL_UNK3+4
+.float 9
 
-restore
-blr
+# Text colors
+.set TPO_COLOR_WHITE, TPO_DLG_LABEL_UNK0 + 4
+.long 0xFFFFFFFF
+
+# String Properties
+.set TPO_STRING_ARE_YOU_SURE, TPO_COLOR_WHITE + 4
+.string "Are you Sure?"
+.align 2
 
 EXIT:
 lis r3, 0x804A
