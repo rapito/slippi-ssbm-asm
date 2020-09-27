@@ -152,6 +152,7 @@ rlwinm \reg, \reg, 8, 0xFFFF # Loads major and minor scene into bottom of reg
 .set HSD_VICopyXFBASync,0x803761c0
 .set HSD_PerfSetStartTime,0x8037E214
 .set HSD_PadRumbleActiveID,0x80378430
+.set HSD_ArchiveGetPublicAddress, 0x80380358
 
 ## GObj functions
 .set GObj_Create,0x803901f0 #(obj_type,subclass,priority)
@@ -239,6 +240,7 @@ rlwinm \reg, \reg, 8, 0xFFFF # Loads major and minor scene into bottom of reg
 .set InsertAlarm, 0x80343778
 
 ## Common/memory management
+.set va_arg, 0x80322620
 .set OSReport,0x803456a8
 .set memcpy,0x800031f4
 .set memcmp,0x803238c8
@@ -274,7 +276,7 @@ rlwinm \reg, \reg, 8, 0xFFFF # Loads major and minor scene into bottom of reg
 .set SFX_StopSFXInstance, 0x800236b8
 .set Audio_AdjustMusicSFXVolume,0x80025064
 .set SFX_Menu_CommonSound,0x80024030
-.set SFX_PlaySoundAtFullVolume, 0x800237a8 #SFX_PlaySoundAtFullVolume(r3=soundid,r4=volume?,r5=priority) 
+.set SFX_PlaySoundAtFullVolume, 0x800237a8 #SFX_PlaySoundAtFullVolume(r3=soundid,r4=volume?,r5=priority)
 
 ## Scene/input-related functions
 .set NoContestOrRetry_,0x8016cf4c

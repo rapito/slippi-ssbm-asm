@@ -9,6 +9,8 @@
 .set REG_DLG_GOBJ, 25
 .set REG_DLG_JOBJ, 26
 
+.set JOBJ_DESC_DLG, 0x81202714 # memory address of dialog jobj # value is actually: 81202714
+
 backup
 
 ################################################################################
@@ -268,10 +270,40 @@ li r4, CONST_SlippiCmdOpenLogIn
 b FN_OnlineSubmenuThink_TRIGGER_EXI_MSG
 
 FN_OnlineSubmenuThink_HANDLE_LOGOUT:
-li	r3, 3
-branchl r12, SFX_Menu_CommonSound
 
-bl FN_CREATE_DIALOG
+backup
+
+
+
+# Create GObj on snapshot menu
+li r3, 6 # GObj Type (6 is menu type?)
+li r4, 7 # On-Pause Function (dont run on pause)
+li r5, 0x80 # some type of priority
+branchl r12, GObj_Create
+mr REG_DLG_GOBJ, r3 # 0x803901f0 store result
+
+# Create JOBJ
+load r3, JOBJ_DESC_DLG
+#lwz r3, 0x0(r3) # JOBJ for dialog
+branchl r12, JObj_LoadJoint # 0x80370E44 # (this func only uses r3)
+mr REG_DLG_JOBJ, r3 # store result
+
+# Add JOBJ to GObj
+mr r3,REG_DLG_GOBJ
+li	r4, 3
+mr r5,REG_DLG_JOBJ
+branchl r12, GObj_AddToObj # 0x80390A70
+
+# AddGXLink
+mr r3, REG_DLG_GOBJ
+load r4, 0x80391070 # GX Callback func to use
+li r5, 6 # Assigns the gx_link index
+li r6, 0x80 # sets the priority
+branchl r12, GObj_SetupGXLink # 0x8039069c
+
+
+restore
+#bl FN_CREATE_DIALOG
 
 b FN_OnlineSubmenuThink_INPUT_HANDLERS_END
 
@@ -455,12 +487,6 @@ blrl
 FN_CREATE_DIALOG:
 backup
 
-.set JOBJ_DESC_DLG, 0x804a0938 # memory address of dialog jobj
-.set JOBJ_DESC_DLG_ANIM_JOINT, 0x804a093C # memory address of dialog anim joint
-.set JOBJ_DESC_DLG_MAT_JOINT, 0x804a0940 # memory address of dialog mat joint
-.set JOBJ_DESC_DLG_SHAPE_JOINT, 0x804a0944 # memory address of dialog shape joint
-
-
 # Create GObj
 li r3, 7 # GObj Type (6 is menu type?) 7
 li r4, 8 # On-Pause Function (dont run on pause) 8
@@ -476,16 +502,16 @@ mr REG_DLG_JOBJ, r3 # store result
 
 # Add JOBJ to GObj
 mr r3,REG_DLG_GOBJ
-li	r4, 3
+li	r4, 3 # object kind 3 is jobj
 mr r5,REG_DLG_JOBJ
 branchl r12, GObj_AddToObj
 
 # AddGXLink
 mr r3, REG_DLG_GOBJ
-load r4, 0x803a84bc # GX Callback func to use 803a84bc, 80391070
-li r5, 7 # Assigns the gx_link index 4, 7
+load r4, 0x80253e5c # GX Callback func to use 803a84bc, 80391070  80253e5c
+li r5, 8 # Assigns the gx_link index 4, 7
 li r6, 0x80 # sets the priority
-branchl r12, GObj_SetupGXLink
+branchl r12, GObj_SetupGXLink #0x8039069c
 
 restore
 blr
