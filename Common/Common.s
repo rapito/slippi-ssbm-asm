@@ -159,6 +159,8 @@ rlwinm \reg, \reg, 8, 0xFFFF # Loads major and minor scene into bottom of reg
 .set GObj_Destroy,0x80390228
 .set GObj_AddProc,0x8038fd54
 .set GObj_RemoveProc,0x8038fed4
+.set GObj_AddGXLink,0x8039069c
+.set GObj_InitKindData,0x80390a70
 
 ## JObj Functions
 .set JObj_GetJObjChild,0x80011e24

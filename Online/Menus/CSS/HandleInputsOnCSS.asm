@@ -103,10 +103,35 @@ beq HANDLE_ERROR
 
 b SKIP_START_MATCH
 
+.set PAD_LEFT, 0x01
+.set PAD_RIGHT, 0x02
+.set PAD_DOWN, 0x04
+.set PAD_UP, 0x08
 ################################################################################
 # Case 1: Handle idle case
 ################################################################################
 HANDLE_IDLE:
+
+mr r3, REG_INPUTS
+
+cmpwi REG_INPUTS, PAD_LEFT
+beq START_TEST
+cmpwi REG_INPUTS, PAD_RIGHT
+beq START_TEST
+cmpwi REG_INPUTS, PAD_UP
+beq START_TEST
+cmpwi REG_INPUTS, PAD_DOWN
+beq START_TEST
+b SKIP_TEST
+
+START_TEST:
+
+lwz r3, -0x49CC(r13)
+li r4, 1
+branchl r12, 0x80231804
+
+SKIP_TEST:
+
 # When idle, pressing start will start finding match
 # Check if start was pressed
 rlwinm.	r0, REG_INPUTS, 0, 19, 19
@@ -138,7 +163,7 @@ bl FN_LOCK_IN_AND_SEARCH # lock in and trigger matchmaking
 b SKIP_START_MATCH
 
 HANDLE_IDLE_DIRECT:
-bl FN_LOAD_CODE_ENTRY # load text code entry
+bl FN_LOAD_RULES_MENU # load text code entry
 b SKIP_START_MATCH
 
 ################################################################################
@@ -419,16 +444,44 @@ bl FN_LOCK_IN_AND_SEARCH_BLRL
 mflr r3
 stw r3, OFST_R13_CALLBACK(r13)
 
-# Set the player index controlling name entry
+li r3, 4
+bl FN_START_CSS_ACTION
+
+restore
+blr
+
+################################################################################
+# Function: Load Rules Menu
+################################################################################
+FN_LOAD_RULES_MENU:
+backup
+
+li r3, 3
+bl FN_START_CSS_ACTION
+
+restore
+blr
+
+################################################################################
+# Function: Starts a CSS action
+# Input: r3, 0=Do nothing, 1/4= Open Name Entry, 3=Open Rules Menu
+################################################################################
+.set REG_SUBMENU, 21
+FN_START_CSS_ACTION:
+backup
+mr REG_SUBMENU, r3
+
+# Set the player index controlling process
 lbz r0, -0x49b0(r13)
 stb r0, -0x49a7(r13)
 
-# Start process to load name entry
-li r0, 4
+# Start process to load process
+mr r0, REG_SUBMENU
 stb r0, -0x49aa(r13)
 
 restore
 blr
+
 
 ################################################################################
 # Function: Reset connections and clear lock-in state
