@@ -1,10 +1,13 @@
-#To be inserted at 801a45bc
+#To be inserted at 801a45b8
 .include "../../Common/Common.s"
 .include "Online/Online.s"
 #.include "../Globals.s"
 .include "Header.s"
 
 .set  ExitSceneID,40
+
+# Original codeline
+  addi	r29, r3, 4
 
 #region Init New Scenes
 .set  REG_MinorSceneStruct,31
@@ -101,7 +104,8 @@ Major Scene Table:
 
 
 #Get major scene struct
-  branchl r12,0x801a50ac
+  #branchl r12,0x801a50ac
+  load r3,0x803daca4
 GetMajorStruct_Loop:
   lbz	r4, 0x0001 (r3)
   cmpw r4,REG_MajorScene
@@ -473,7 +477,8 @@ blr
 
 #region VSSceneDecide
 VSSceneDecide:
-.set REG_MSRB_ADDR,31
+.set REG_MSRB_ADDR, 31
+.set REG_TXB_ADDR, 30
 
 backup
 
@@ -522,6 +527,39 @@ stb r3,OFST_R13_ISWINNER(r13)
 # Reset CHOSESTAGE bool
 li  r3,0
 stb r3, OFST_R13_CHOSESTAGE (r13)
+
+# Prepare to reset RNG seed. This fixes the issue where both clients would
+# random the same character following a game
+
+# Prepare buffer for EXI transfer
+li r3, 4
+branchl r12, HSD_MemAlloc
+mr REG_TXB_ADDR, r3
+
+# Write tx data
+li r3, CONST_SlippiCmdGetNewSeed
+stb r3, 0(REG_TXB_ADDR)
+
+# Initiate get new seed command
+mr r3, REG_TXB_ADDR
+li r4, 1
+li r5, CONST_ExiWrite
+branchl r12, FN_EXITransferBuffer
+
+# Read back information
+mr r3, REG_TXB_ADDR
+li r4, 0x4
+li r5, CONST_ExiRead
+branchl r12, FN_EXITransferBuffer
+
+# Copy RNG seed over
+lis r4, 0x804D
+lwz r3, 0(REG_TXB_ADDR)
+stw r3, 0x5F90(r4) #RNG seed
+
+# Free the TX buffer
+mr r3, REG_TXB_ADDR
+branchl r12, HSD_Free
 
 # Go back to CSS
 load r4, 0x80479d30
@@ -806,4 +844,3 @@ Injection_Exit:
   restore
   li  r3,ExitSceneID
   stb r3,0x0(r30)
-  li	r31, 0
