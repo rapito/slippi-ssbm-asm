@@ -126,9 +126,7 @@ b SKIP_TEST
 
 START_TEST:
 
-lwz r3, -0x49CC(r13)
-li r4, 1
-branchl r12, 0x80231804
+bl FN_LOAD_RULES_MENU
 
 SKIP_TEST:
 
@@ -163,7 +161,8 @@ bl FN_LOCK_IN_AND_SEARCH # lock in and trigger matchmaking
 b SKIP_START_MATCH
 
 HANDLE_IDLE_DIRECT:
-bl FN_LOAD_RULES_MENU # load text code entry
+bl FN_LOAD_CODE_ENTRY
+#bl FN_LOAD_RULES_MENU # load text code entry
 b SKIP_START_MATCH
 
 ################################################################################
