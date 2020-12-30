@@ -302,7 +302,8 @@ lwz \reg, -0x62A0(\reg)
 .set CSSDT_LAST_CHAT_MSG_INDEX, CSSDT_CHAT_MSG_COUNT + 1 # u8
 .set CSSDT_TEAM_IDX, CSSDT_LAST_CHAT_MSG_INDEX + 1 # u8
 .set CSSDT_TEAM_COSTUME_IDX, CSSDT_TEAM_IDX + 1 #8
-.set CSSDT_SIZE, CSSDT_TEAM_COSTUME_IDX + 1
+.set CSSDT_ICON_JOBJ_ADDR, CSSDT_TEAM_COSTUME_IDX + 1 #u32
+.set CSSDT_SIZE, CSSDT_ICON_JOBJ_ADDR + 4
 
 ################################################################################
 # CSS Chat Message Data Table

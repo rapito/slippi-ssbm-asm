@@ -138,6 +138,7 @@ rlwinm \reg, \reg, 8, 0xFFFF # Loads major and minor scene into bottom of reg
 .set FN_MultiplyRWithF,0x800055ec
 .set FN_IntToFloat,0x800055f4
 .set FG_CreateSubtext,0x800056b4
+.set FN_SwitchPlayerTeam,0x80005614
 
 # Online static functions
 .set FN_CaptureSavestate,0x80005608
