@@ -14,12 +14,21 @@
 .set REG_TEAM_IDX, 25
 .set REG_COSTUME_IDX, 24
 
+.set REG_DATA_BUFFER, 23
+.set REG_ICON_JOBJ, 22
+.set REG_ICON_GOBJ, 21
+
+.set REG_VS_SSS_DATA, 20
+.set REG_TEXT_STRUCT, 19
+.set REG_MSRB_ADDR, 18
+
 # float registers
 .set REG_F_0, 31
 .set REG_F_1, REG_F_0-1
 
 .set JOBJ_CHILD_OFFSET, 0x34 # Pointer to store Child JOBJ on the SP
 .set ICON_JOBJ_OFFSET, 0x28 # offset from GOBJ to HSD Object (Jobj we assigned)
+.set GOBJ_USER_DATA_OFFSET, 0x2C # GOBJ's offset to entity data
 
 # Ensure that this is an online CSS
 getMinorMajor r3
@@ -32,8 +41,14 @@ b INIT_BUTTON
 ################################################################################
 PROPERTIES:
 blrl
+# Text Properties
+.set TPO_BASE_Z, 0
+.float 0
+.set TPO_BASE_CANVAS_SCALING, TPO_BASE_Z + 4
+.float 0.1
+
 # Toggle Button Bounds
-.set TPO_BOUNDS_ICON_TOP, 0
+.set TPO_BOUNDS_ICON_TOP, TPO_BASE_CANVAS_SCALING+4
 .float -2.5
 .set TPO_BOUNDS_ICON_BOTTOM, TPO_BOUNDS_ICON_TOP + 4
 .float -5
@@ -42,7 +57,18 @@ blrl
 .set TPO_BOUNDS_ICON_RIGHT, TPO_BOUNDS_ICON_LEFT + 4
 .float -17.5
 
-.set TPO_FLOAT_0, TPO_BOUNDS_ICON_RIGHT + 4
+.set TPO_COLOR_WHITE, TPO_BOUNDS_ICON_RIGHT + 4
+.long 0xFFFFFFFF # white
+.set TPO_PLAYER_NAME_SIZE, TPO_COLOR_WHITE + 4
+.float 0.5
+.set TPO_PLAYER_NAME_X_POS, TPO_PLAYER_NAME_SIZE + 4
+.float -90
+.set TPO_PLAYER_NAME_Y_POS, TPO_PLAYER_NAME_X_POS + 4
+.float 115
+.set TPO_PLAYER_NAME_Y_MARGIN, TPO_PLAYER_NAME_Y_POS + 4
+.float 30.0
+
+.set TPO_FLOAT_0, TPO_PLAYER_NAME_Y_MARGIN + 4
 .float 0.0
 
 .set TPO_ICON_POS_X, TPO_FLOAT_0 + 4
@@ -52,15 +78,24 @@ blrl
 .set TPO_ICON_POS_Z, TPO_ICON_POS_Y + 4
 .float 0.1
 
+.set TPO_STOCK_ICON_POS_X, TPO_ICON_POS_Z + 4
+.float -11.5
+.set TPO_STOCK_ICON_POS_Y, TPO_STOCK_ICON_POS_X + 4
+.float -5.5
+.set TPO_STOCK_ICON_MARGIN_Y, TPO_STOCK_ICON_POS_Y + 4
+.float -3.0
+
+.set TPO_TEST_STRING, TPO_STOCK_ICON_MARGIN_Y + 4
+.string "NotRapito"
+.set TPO_TEST_STRING2, TPO_TEST_STRING + 10
+.string "NotRapito2"
+
 .align 2
 
 ################################################################################
 # Creates and initializes Button and queues it's THINK function
 ################################################################################
 INIT_BUTTON:
-.set REG_ICON_GOBJ, 20
-.set REG_ICON_JOBJ, 21
-.set REG_DATA_BUFFER, 23
 backup
 
 loadwz REG_CSSDT_ADDR, CSSDT_BUF_ADDR
@@ -70,6 +105,52 @@ bl PROPERTIES
 mflr REG_PROPERTIES
 
 lfs REG_F_0, TPO_FLOAT_0(REG_PROPERTIES)
+
+# Create Player Names Text
+# Create Text Struct
+li r3, 0
+li r4, 0
+branchl r12, Text_CreateStruct
+mr REG_TEXT_STRUCT, r3
+
+# Set text kerning to close
+li r4, 0x1
+stb r4, 0x49(REG_TEXT_STRUCT)
+# Set text to align left
+li r4, 0x0
+stb r4, 0x4A(REG_TEXT_STRUCT)
+
+# Store Base Z Offset
+lfs f1, TPO_BASE_Z(REG_PROPERTIES) #Z offset
+stfs f1, 0x8(REG_TEXT_STRUCT)
+
+# Scale Canvas Down
+lfs f1, TPO_BASE_CANVAS_SCALING(REG_PROPERTIES)
+stfs f1, 0x24(REG_TEXT_STRUCT)
+stfs f1, 0x28(REG_TEXT_STRUCT)
+
+lfs f14, TPO_PLAYER_NAME_Y_POS(REG_PROPERTIES) # y pos
+
+li r14, 0 # start index
+INIT_PLAYER_NAMES_LOOP:
+# Display player name at the right of the stock icon
+mr r3, REG_TEXT_STRUCT # text struct pointer
+addi r4, REG_PROPERTIES, TPO_COLOR_WHITE # text color
+li r5, 0 # outline text
+addi r7, REG_PROPERTIES, TPO_TEST_STRING
+lfs f1, TPO_PLAYER_NAME_SIZE(REG_PROPERTIES) # chat message size
+lfs f2, TPO_PLAYER_NAME_SIZE(REG_PROPERTIES) # chat message size
+lfs f3, TPO_PLAYER_NAME_X_POS(REG_PROPERTIES) # x pos
+fmr f4, f14 # y pos
+lfs f5, TPO_PLAYER_NAME_SIZE(REG_PROPERTIES) # chat message size
+branchl r12, FG_CreateSubtext
+
+lfs f3, TPO_PLAYER_NAME_Y_MARGIN(REG_PROPERTIES) # y pos
+fadds f14, f14, f3
+
+addi r14, r14, 1
+cmpwi r14, 4
+blt INIT_PLAYER_NAMES_LOOP
 
 # Get Memory Buffer for Chat Window Data Table
 li r3, CSSTIDT_SIZE # Teams Icon Buffer Size
@@ -81,8 +162,10 @@ li r4, CSSTIDT_SIZE
 branchl r12, Zero_AreaLength
 
 # Add CSS DataTable Address to Data Buffer
-mr r3, REG_CSSDT_ADDR # store address to CSS Data Table
-stw r3, CSSCWDT_CSSDT_ADDR(REG_DATA_BUFFER)
+# store address to CSS Data Table
+# Add Text Struct Address to Data Buffer
+stw REG_CSSDT_ADDR, CSSTIDT_CSSDT_ADDR(REG_DATA_BUFFER)
+stw REG_TEXT_STRUCT, CSSTIDT_TEXT_STRUCT_ADDR(REG_DATA_BUFFER)
 
 # create gobj for think function
 li r3, 0x4
@@ -216,7 +299,6 @@ lwz r3, 0x08(r3) # offset to Dobj's mobj
 fmr f1, REG_F_0 # float 0.0
 branchl r12, 0x80363C2C # HSD_MObjSetAlpha(mobj, float alpha)
 
-
 restore
 b EXIT
 ################################################################################
@@ -230,21 +312,65 @@ backup
 mr REG_ICON_GOBJ, r3
 lwz REG_ICON_JOBJ, ICON_JOBJ_OFFSET(REG_ICON_GOBJ) # Get Jobj
 
+loadwz REG_CSSDT_ADDR, CSSDT_BUF_ADDR
+
+lwz REG_DATA_BUFFER, GOBJ_USER_DATA_OFFSET(REG_ICON_GOBJ)
+lwz REG_TEXT_STRUCT, CSSTIDT_TEXT_STRUCT_ADDR(REG_DATA_BUFFER)
+lwz REG_MSRB_ADDR, CSSDT_MSRB_ADDR(REG_CSSDT_ADDR)
+
+mr r3, REG_MSRB_ADDR
+branchl r12, FN_LoadMatchState
+mr REG_MSRB_ADDR, r3
+
 # Ensure we are not in name entry screen
 lbz r3, -0x49AA(r13)
 cmpwi r3, 0
 bne FN_TEAM_BUTTON_THINK_EXIT
 
 # Ensure we are not locked in
-loadwz REG_CSSDT_ADDR, CSSDT_BUF_ADDR # Load where buf is stored
-lwz r3, CSSDT_MSRB_ADDR(REG_CSSDT_ADDR)
-lbz r3, MSRB_IS_LOCAL_PLAYER_READY(r3)
+lbz r3, MSRB_IS_LOCAL_PLAYER_READY(REG_MSRB_ADDR)
 cmpwi r3, 0
 bne FN_TEAM_BUTTON_THINK_EXIT # No changes when locked-in
 
-# Get text properties address
+# Get properties address
 bl PROPERTIES
 mflr REG_PROPERTIES
+
+# Initialize Stock Icons for connected players
+lfs f14, TPO_STOCK_ICON_POS_Y(REG_PROPERTIES)
+li r20, 0 # start index
+LOOP_SI_START:
+# Get char costume if from game info block
+mulli r6, r20, 0x24 # offset to player index
+mulli r8, r20, 31 # offset to player name
+add r6, r6, REG_MSRB_ADDR
+add r8, r8, REG_MSRB_ADDR
+
+# Add POS Y Margin on each iteration
+lfs f3, TPO_STOCK_ICON_MARGIN_Y(REG_PROPERTIES)
+fadds f14, f14, f3
+
+
+# This is supposed to grab the costume id from the game info block
+# but it seems like it's not set even after lock-in or a match is over
+#addi r4, r6, MSRB_GAME_INFO_BLOCK + 0x63 # Costume ID
+
+# put a green falco with char ids that follow for now
+li r4, 0x6d # Green Falco
+add r4, r4, r20
+
+mr r3, r20 # Port index
+addi r5, r20, 0x36 # Stock icon index
+mr r6, REG_TEXT_STRUCT # Text Struct
+addi r7, r8, MSRB_P1_NAME # String Address
+lfs f1, TPO_STOCK_ICON_POS_X(REG_PROPERTIES) # X POS
+fmr f2, f14 # Y POS
+bl FN_UPDATE_STOCK_ICONS
+
+addi r20, r20, 1
+cmpwi r20, 4
+blt LOOP_SI_START
+
 
 li REG_IS_HOVERING, 0 # Initialize hover state as false
 loadwz r4, 0x804A0BC0 # This gets ptr to cursor position on CSS
@@ -434,6 +560,69 @@ li r3, 0
 branchl r12, 0x8025db34 # CSS_CursorHighlightUpdateCSPInfo
 
 FN_CHANGE_PORTRAIT_BG_EXIT:
+restore
+blr
+
+################################################################################
+# Function: Shows hidden stock icons for a given player and shows it's name next
+# to it
+################################################################################
+# Inputs:
+# r3: Port Index
+# r4: Costume Id
+# r5: Stock Icon Index
+# r6: Text Struct Adress
+# r7: Player Name String Address
+# f1: Stock Icon POS X
+# f2: Stock Icon POS Y
+################################################################################
+FN_UPDATE_STOCK_ICONS:
+.set REG_PORT_INDEX, 31
+.set REG_COSTUME_IDX, REG_PORT_INDEX-1
+.set REG_STOCK_ICON_INDEX, REG_COSTUME_IDX-1
+.set REG_TEXT_STRUCT, REG_STOCK_ICON_INDEX-1
+.set REG_PLAYER_NAME_STRING, REG_TEXT_STRUCT-1
+backup
+
+mr REG_PORT_INDEX, r3 # port index
+mr REG_COSTUME_IDX, r4 # costume id
+mr REG_STOCK_ICON_INDEX, r5 # stock icon index
+mr REG_TEXT_STRUCT, r6 # text struct address
+mr REG_PLAYER_NAME_STRING, r7 # player name address
+
+lwz r3, -0x49E0 (r13) # pointer to SingleMenuModel live root JObj
+addi r4, sp, 0x38 # pointer where to store return value
+# mr r5, REG_STOCK_ICON_INDEX
+li r6, -1
+branchl r12, JObj_GetJObjChild
+
+
+# Move to desired position
+lwz r3, 0x38(sp) # get returned JObj
+stfs f1, 0x38(r3) # X POS offset
+stfs f2, 0x3C(r3) # Y POS offset
+
+# Unhide stock icon
+li r4, 0x10
+branchl r12, JObj_ClearFlagsAll
+
+# Animate to Char Costume Index
+mr r3, REG_COSTUME_IDX
+branchl r12, FN_IntToFloat
+
+lwz r3, 0x38(sp) # get returned JObj
+branchl r12, JObj_ReqAnimAll # (jobj, frames)
+
+lwz r3, 0x38(sp) # get returned JObj
+branchl r12, JObj_AnimAll
+
+# Set Text Values for player names
+mr r3, REG_TEXT_STRUCT
+mr r4, REG_PORT_INDEX
+mr r5, REG_PLAYER_NAME_STRING
+branchl r12, Text_UpdateSubtextContents
+
+FN_UPDATE_STOCK_ICONS_EXIT:
 restore
 blr
 
