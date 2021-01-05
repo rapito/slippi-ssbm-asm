@@ -19,8 +19,10 @@
 
 # Registers to be used in Chat Messagees Think Function
 .set CHAT_ENTITY_DATA_OFFSET, 0x2C # offset from GOBJ to entity data
+.set CHAT_JOBJ_OFFSET, 0x28 # offset from GOBJ to HSD Object (Jobj we assigned)
 .set REG_CHATMSG_GOBJ, 14
-.set REG_CHATMSG_GOBJ_DATA_ADDR, REG_CHATMSG_GOBJ+1
+.set REG_CHATMSG_JOBJ, REG_CHATMSG_GOBJ+1
+.set REG_CHATMSG_GOBJ_DATA_ADDR, REG_CHATMSG_JOBJ+1
 .set REG_CHATMSG_TIMER, REG_CHATMSG_GOBJ_DATA_ADDR+1
 .set REG_CHATMSG_MSG_ID, REG_CHATMSG_TIMER+1
 .set REG_CHATMSG_MSG_INDEX, REG_CHATMSG_MSG_ID+1
@@ -62,8 +64,19 @@ blrl
 .set TPO_BASE_CANVAS_SCALING, TPO_CHATMSG_Z + 4
 .float 0.1
 
+.set TPO_CHATMSG_CONTAINER_X, TPO_BASE_CANVAS_SCALING + 4
+.float -31
+.set TPO_CHATMSG_CONTAINER_Y, TPO_CHATMSG_CONTAINER_X + 4
+.float 24
+.set TPO_CHATMSG_CONTAINER_Y_MARGIN, TPO_CHATMSG_CONTAINER_Y + 4
+.float -2.5
+.set TPO_CHATMSG_CONTAINER_SX, TPO_CHATMSG_CONTAINER_Y_MARGIN + 4
+.float 0.5
+.set TPO_CHATMSG_CONTAINER_SY, TPO_CHATMSG_CONTAINER_SX + 4
+.float 0.031
+
 # Chat Message Propiertes
-.set TPO_CHATMSG_X, TPO_BASE_CANVAS_SCALING + 4
+.set TPO_CHATMSG_X, TPO_CHATMSG_CONTAINER_SY + 4
 .float -310
 .set TPO_CHATMSG_Y, TPO_CHATMSG_X + 4
 .float -265
@@ -715,6 +728,50 @@ li r5, 0x80
 branchl r12, GObj_Create
 mr r14, r3 # save pointer to GOBJ
 
+# create jbobj (custom chat window background)
+lwz r3, -0x49eC(r13) # = 804db6a0 pointer to MnSlChar file
+lwz r3, 0x18(r3) # pointer to our custom bg jobj
+branchl r12,0x80370e44 #Create Jboj
+mr  r15,r3
+
+lfs f1, TPO_CHATMSG_CONTAINER_X(REG_TEXT_PROPERTIES)
+lfs f2, TPO_CHATMSG_CONTAINER_Y(REG_TEXT_PROPERTIES)
+lfs f3, TPO_CHATMSG_CONTAINER_SX(REG_TEXT_PROPERTIES)
+lfs f4, TPO_CHATMSG_CONTAINER_SY(REG_TEXT_PROPERTIES)
+stfs f1, 0x38(r3) # X POS
+stfs f2, 0x3C(r3) # Y POS
+stfs f3, 0x2C(r3) # X SCALE
+stfs f4, 0x30(r3) # Y SCALE
+
+mr r3, r15
+li r4, 0x10 # Set all Invisible
+branchl r12, JObj_SetFlagsAll
+
+mr r3, r15
+lwz r3, 0x10(r15)
+lwz r3, 0x08(r3)
+lwz r3, 0x08(r3)
+li r4, 0x10 # Clear Invisible flag to first jobj
+branchl r12, JObj_ClearFlags
+
+#lwz r3, 0x10(r15)
+#lwz r3, 0x08(r3)
+#li r4, 0x10 # Clear Invisible flag to first jobj
+#branchl r12, JObj_SetFlagsAll
+
+# Add JOBJ To GObj
+mr  r3,r14
+li r4, 4
+mr  r5,r15
+branchl r12,0x80390a70 # void GObj_AddObject(GOBJ *gobj, u8 unk, void *object)
+
+# Add GX Link that draws the background
+mr  r3,r14
+load r4,0x80391070 # 80302608, 80391044, 8026407c, 80391070, 803a84bc
+li  r5, 2
+li  r6, 128
+branchl r12,0x8039069c # void GObj_AddGXLink(GOBJ *gobj, void *cb, int gx_link, int gx_pri)
+
 li r4, 4 # user data kind 0x80195b7c
 load r5, HSD_Free # destructor
 mr r6, r23 # memory pointer of allocated buffer above
@@ -1144,6 +1201,7 @@ mflr REG_TEXT_PROPERTIES
 
 # get gobj and get values for each of the data buffer
 lwz REG_CHATMSG_GOBJ_DATA_ADDR, CHAT_ENTITY_DATA_OFFSET(REG_CHATMSG_GOBJ) # get address of data buffer
+lwz REG_CHATMSG_JOBJ, CHAT_JOBJ_OFFSET(REG_CHATMSG_GOBJ) # get address of data buffer
 lbz REG_CHATMSG_TIMER, CSSCMDT_TIMER(REG_CHATMSG_GOBJ_DATA_ADDR)
 lbz REG_CHATMSG_MSG_ID, CSSCMDT_MSG_ID(REG_CHATMSG_GOBJ_DATA_ADDR)
 lbz REG_CHATMSG_MSG_INDEX, CSSCMDT_MSG_INDEX(REG_CHATMSG_GOBJ_DATA_ADDR)
@@ -1264,6 +1322,12 @@ mr REG_CHATMSG_MSG_STRING_ADDR, r4 # store current string pointer
 # calculate float locations for message
 mr r3,REG_CHATMSG_MSG_INDEX # convert message index to float
 branchl r12, FN_IntToFloat # returns f1
+
+lfs f2, TPO_CHATMSG_CONTAINER_Y(REG_TEXT_PROPERTIES)
+lfs f3, TPO_CHATMSG_CONTAINER_Y_MARGIN(REG_TEXT_PROPERTIES)
+fmuls f3, f3, f1
+fadds f2, f2, f3
+stfs f2, 0x3C(REG_CHATMSG_JOBJ) # Y POS
 
 # calculate Y offset based on message index
 lfs f4, TPO_CHATMSG_SIZE_MARGIN(REG_TEXT_PROPERTIES) # distance between message
