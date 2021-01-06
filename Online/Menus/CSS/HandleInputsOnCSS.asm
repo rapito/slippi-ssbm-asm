@@ -252,6 +252,14 @@ lbz r3, -0x49A9(r13)
 cmpwi r3, 0
 beq CHECK_SHOULD_START_MATCH
 
+# Sometimes when returning to the CSS, previously held buttons will stay held,
+# including start. This prevents the start input from locking people in
+# immediately... Doesn't feel like this should be necessary, and if it is,
+# this doesn't feel like the right place for this logic
+loadGlobalFrame r3
+cmpwi r3, 0
+beq CHECK_SHOULD_START_MATCH # Don't lock-in on the very first fram
+
 # Check which mode we are playing.
 lbz r3, OFST_R13_ONLINE_MODE(r13)
 cmpwi r3, ONLINE_MODE_UNRANKED
@@ -823,14 +831,14 @@ stw REG_CHAT_WINDOW_TEXT_STRUCT_ADDR, CSSCWDT_TEXT_STRUCT_ADDR(REG_CHAT_WINDOW_G
 
 # Create Subtext: Header
 mr r3, REG_CHAT_WINDOW_TEXT_STRUCT_ADDR # Text Struct Address
-addi r4, REG_TEXT_PROPERTIES, TPO_COLOR_WHITE # Text Color
+addi r4, REG_TEXT_PROPERTIES, TPO_COLOR_YELLOW # Text Color
 li r5, 0 # no outline
 addi r6, REG_TEXT_PROPERTIES, TPO_COLOR_WHITE # Text Color
 addi r7, REG_TEXT_PROPERTIES, TPO_STRING_CHAT_SHORTCUTS # String Format pointer
 addi r8, REG_CHAT_TEXT_PROPERTIES, TPO_STRING_CHAT_SHORTCUT_NAME # String pointer
 lfs f1, TPO_CHAT_LABEL_SIZE(REG_TEXT_PROPERTIES) # Text Size
 lfs f2, TPO_CHAT_LABEL_SIZE(REG_TEXT_PROPERTIES) # Text Size
-lfs f3, TPO_CHAT_LABEL_X(REG_TEXT_PROPERTIES) # X POS
+lfs f3, TPO_CHAT_HEADER_X(REG_TEXT_PROPERTIES) # X POS
 lfs f4, TPO_CHAT_LABEL_Y(REG_TEXT_PROPERTIES) # Y POS
 branchl r12, FG_CreateSubtext
 mr r4, r3 # sub text index for next function call
@@ -882,8 +890,8 @@ mr r3, REG_CHAT_WINDOW_TEXT_STRUCT_ADDR # Text Struct Address
 addi r4, REG_TEXT_PROPERTIES, TPO_COLOR_WHITE # Text Color
 li r5, 0 # No outlines
 addi r6, REG_TEXT_PROPERTIES, TPO_COLOR_WHITE # Text Color
-addi r7, REG_TEXT_PROPERTIES, TPO_STRING_CHAT_LABEL_FORMAT # String Format pointer
-add r9, REG_CHAT_TEXT_PROPERTIES, r9 # message String pointer
+#addi r7, REG_TEXT_PROPERTIES, TPO_STRING_CHAT_LABEL_FORMAT # String Format pointer
+add r7, REG_CHAT_TEXT_PROPERTIES, r9 # message String pointer
 lfs f1, TPO_CHAT_LABEL_SIZE(REG_TEXT_PROPERTIES) # Text Size
 lfs f2, TPO_CHAT_LABEL_SIZE(REG_TEXT_PROPERTIES) # Text Size
 lfs f3, TPO_CHAT_LABEL_X(REG_TEXT_PROPERTIES) # X POS
@@ -977,8 +985,10 @@ blrl
 .float 0.1
 
 # Chat Labels Propiertes
-.set TPO_CHAT_LABEL_X, TPO_BASE_CANVAS_SCALING + 4
+.set TPO_CHAT_HEADER_X, TPO_BASE_CANVAS_SCALING + 4
 .float -330
+.set TPO_CHAT_LABEL_X, TPO_CHAT_HEADER_X + 4
+.float -315
 .set TPO_CHAT_LABEL_Y, TPO_CHAT_LABEL_X + 4
 .float 105
 .set TPO_CHAT_LABEL_SIZE, TPO_CHAT_LABEL_Y + 4
@@ -989,9 +999,11 @@ blrl
 # Text colors
 .set TPO_COLOR_WHITE, TPO_CHAT_LABEL_MARGIN + 4
 .long 0xFFFFFFFF # white
+.set TPO_COLOR_YELLOW, TPO_COLOR_WHITE + 4
+.long 0xffea2fFF
 
 # String Properties
-.set TPO_EMPTY_STRING, TPO_COLOR_WHITE + 4
+.set TPO_EMPTY_STRING, TPO_COLOR_YELLOW + 4
 .string ""
 .set TPO_STRING_CHAT_SHORTCUTS, TPO_EMPTY_STRING + 1
 .string "Chat: %s"
