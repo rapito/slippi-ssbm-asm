@@ -287,7 +287,9 @@ cmpwi r3,0
 beq HANDLE_CONNECTED_DIRECT_LOADSSS
 HANDLE_CONNECTED_DIRECT_SENDSTAGE:
 # Send selected stage
-lwz	r3, -0x77C0 (r13)
+#lwz	r3, -0x77C0 (r13)
+# TODO: restore
+branchl r12, FN_GET_RANDOM_STAGE_ID
 addi	r3, r3, 1424 + 0x8   # adding 0x8 to skip past some scene state stuff
 lhz r3, 0x1E (r3)
 bl FN_TX_LOCK_IN
@@ -1112,6 +1114,40 @@ stfs REG_SCALING, 0x28(REG_TEXT_STRUCT_ADDR)
 mr r3, REG_TEXT_STRUCT_ADDR
 restore
 blr
+
+
+################################################################################
+# Function: Gets Random Stage ID From Settings
+# return r3=stage id
+# Stolen from getStageFromRandomStageSelect
+################################################################################
+FN_GET_RANDOM_STAGE_ID:
+backup
+load r31, 0x803f06d0 # static memory address where stage data starts
+# this loops is stolen and slightly modified from getStageFromRandomStageSelect
+# at 0x80259b58
+start_loop:
+li	r3, 29
+branchl r12, HSD_Randi
+
+mulli	r4, r3, 28
+addi	r0, r4, 4
+lwzx	r0, r31, r0
+addi	r30, r3, 0
+cmpwi	r0, 0
+bne start_loop
+
+addi	r0, r4, 10
+lbzx	r3, r31, r0
+branchl r12, 0x80164330 # Stage_CheckIfStageUnlocked/Enabled
+cmpwi r3, 1
+bne start_loop
+
+mr r3, r30
+branchl r12, 0x801641cc # RandomStageSelectID->ExternalStageID
+restore
+blr
+
 
 ################################################################################
 # Skip starting match
