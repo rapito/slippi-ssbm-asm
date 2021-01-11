@@ -48,7 +48,8 @@ blrl
 ################################################################################
 .set REG_DATA_ADDR, 31
 .set REG_TEXT_STRUCT, 30
-
+.set REG_CHAT_GOBJ, 29
+.set REG_CHAT_JOBJ, 28
 CODE_START:
 backup
 
@@ -126,7 +127,73 @@ li r4, 2
 addi r5, REG_DATA_ADDR, DOFST_TEXT_HIGHLIGHT_COLOR
 branchl r12, Text_ChangeTextColor
 
+# Get Memory Buffer for Chat Window Data Table
+li r3, CSSCWDT_SIZE # Buffer Size
+branchl r12, HSD_MemAlloc
+mr r23, r3 # save result address into r23
+li r4, CSSCWDT_SIZE
+branchl r12, Zero_AreaLength
+
+# create gobj for think function
+li r3, 0x4
+li r4, 0x5
+li r5, 0x80
+branchl r12, GObj_Create
+mr REG_CHAT_GOBJ, r3 # save GOBJ pointer
+
+#0x804a06f0 # static pointer to loaded file when opening NameEntryScreen
+# 0x40 is the first empty offset
+
+# create jbobj (custom chat window background)
+lwz r3, -0x49eC(r13) # = 804db6a0 pointer to MnSlChar file
+lwz r3, 0x1C(r3) # pointer to our custom bg jobj
+branchl r12,0x80370e44 #Create Jboj
+mr  REG_CHAT_JOBJ,r3
+
+# Add JOBJ To GObj
+mr  r3,REG_CHAT_GOBJ
+li r4, 4
+mr  r5,REG_CHAT_JOBJ
+branchl r12,0x80390a70 # void GObj_AddObject(GOBJ *gobj, u8 unk, void *object)
+
+# Add GX Link that draws the background
+mr  r3,REG_CHAT_GOBJ
+load r4,0x80391070 # 80302608, 80391044, 8026407c, 80391070, 803a84bc
+li  r5, 4
+li  r6, 128
+branchl r12,GObj_SetupGXLink # void GObj_AddGXLink(GOBJ *gobj, void *cb, int gx_link, int gx_pri)
+
+# Add User Data to GOBJ ( Our buffer )
+mr r3, REG_CHAT_GOBJ
+li r4, 4 # user data kind
+load r5, HSD_Free # destructor
+mr r6, r23 # memory pointer of allocated buffer above
+branchl r12, GObj_Initialize
+
+# Set Think Function that runs every frame
+mr r3, REG_CHAT_GOBJ # set r3 to GOBJ pointer
+bl CSS_ONLINE_CHAT_WINDOW_THINK
+mflr r4 # Function to Run
+li r5, 4 # Priority. 4 runs after CSS_LoadButtonInputs (3)
+branchl r12, GObj_AddProc
+
+
 restore
+b EXIT
+
+################################################################################
+# CHAT MSG THINK Function: Looping function to keep on
+# updating the text until timer runs out
+################################################################################
+CSS_ONLINE_CHAT_WINDOW_THINK:
+blrl
+backup
+
+CSS_ONLINE_CHAT_WINDOW_THINK_EXIT:
+restore
+blr
+
+
 
 EXIT:
 li r3, 0

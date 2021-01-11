@@ -129,7 +129,7 @@ b SKIP_START_MATCH
 HANDLE_IDLE:
 
 # uncomment to debug the chat window
-#bl FN_CHECK_CHAT_INPUTS
+bl FN_CHECK_CHAT_INPUTS
 
 # When idle, pressing start will start finding match
 # Check if start was pressed
@@ -656,6 +656,9 @@ li r4, 0x5
 li r5, 0x80
 branchl r12, GObj_Create
 mr REG_CHAT_GOBJ, r3 # save GOBJ pointer
+
+#0x804a06f0 # static pointer to loaded file when opening NameEntryScreen
+# 0x40 is the first empty offset
 
 # create jbobj (custom chat window background)
 lwz r3, -0x49eC(r13) # = 804db6a0 pointer to MnSlChar file
