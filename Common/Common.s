@@ -163,7 +163,7 @@ rlwinm \reg, \reg, 8, 0xFFFF # Loads major and minor scene into bottom of reg
 .set GObj_Destroy,0x80390228
 .set GObj_AddProc,0x8038fd54 # (obj,func,priority)
 .set GObj_RemoveProc,0x8038fed4
-.set GObj_AddToObj,0x80390A70 #(gboj,obj_kind,obj_ptr)
+.set GObj_AddToObj,0x80390A70 #GObj_AddToObj(gboj,obj_kind,obj_ptr)
 .set GObj_SetupGXLink, 0x8039069c #(gobj,function,gx_link,priority)
 
 ## JObj Functions
