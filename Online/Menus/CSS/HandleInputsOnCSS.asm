@@ -295,9 +295,7 @@ cmpwi r3,0
 beq HANDLE_CONNECTED_DIRECT_LOADSSS
 HANDLE_CONNECTED_DIRECT_SENDSTAGE:
 # Send selected stage
-#lwz	r3, -0x77C0 (r13)
-# TODO: restore
-branchl r12, FN_GET_RANDOM_STAGE_ID
+lwz	r3, -0x77C0 (r13)
 addi	r3, r3, 1424 + 0x8   # adding 0x8 to skip past some scene state stuff
 lhz r3, 0x1E (r3)
 bl FN_TX_LOCK_IN
@@ -430,8 +428,8 @@ cmpwi REG_SB, 0
 bge FN_TX_LOCK_IN_STAGE_PICK
 
 FN_TX_LOCK_IN_STAGE_RAND:
-li  r3,0
-li  r4,3
+bl FN_GET_RANDOM_STAGE_ID
+li  r4,1
 b FN_TX_LOCK_IN_STAGE_SEND
 
 FN_TX_LOCK_IN_STAGE_UNSET:
