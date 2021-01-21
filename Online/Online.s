@@ -266,7 +266,9 @@ lwz \reg, -0x62A0(\reg)
 .set PSTB_CHAR_OPT, PSTB_CHAR_COLOR + 1 # u8, 0 = unset, 1 = merge, 2 = clear
 .set PSTB_STAGE_ID, PSTB_CHAR_OPT + 1 # u16
 .set PSTB_STAGE_OPT, PSTB_STAGE_ID + 2 # u8, 0 = unset, 1 = merge, 2 = clear, 3 = random
-.set PSTB_SIZE, PSTB_STAGE_OPT + 1
+.set PSTB_GAME_INFO_OPT, PSTB_STAGE_OPT + 1 # 0 = default, 1 = custom, 2 = RJJ
+.set PSTB_GAME_INFO_BLOCK, PSTB_GAME_INFO_OPT + 1 # MATCH_STRUCT_LEN
+.set PSTB_SIZE, PSTB_GAME_INFO_BLOCK + MATCH_STRUCT_LEN
 
 ################################################################################
 # Chat Messages Transfer Buffer

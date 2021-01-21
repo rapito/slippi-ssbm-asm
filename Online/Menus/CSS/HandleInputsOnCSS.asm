@@ -394,6 +394,13 @@ FN_TX_LOCK_IN:
 .set  REG_SB, 31    # stage behavior
 backup
 
+# Copy game rules first
+branchl r12, 0x801A5244 # GetSSSMatchStruct
+mr r4, r3
+li r5, 0
+li r6, 0
+branchl r12, 0x801a583c #VSCopyCSSInfo
+
 # Backup stage behavior
 mr  REG_SB,r3
 
@@ -429,7 +436,7 @@ bge FN_TX_LOCK_IN_STAGE_PICK
 
 FN_TX_LOCK_IN_STAGE_RAND:
 bl FN_GET_RANDOM_STAGE_ID
-li  r4,1
+li  r4, 1
 b FN_TX_LOCK_IN_STAGE_SEND
 
 FN_TX_LOCK_IN_STAGE_UNSET:
@@ -446,6 +453,20 @@ FN_TX_LOCK_IN_STAGE_SEND:
 sth r3, PSTB_STAGE_ID(REG_TXB_ADDR)
 stb r4, PSTB_STAGE_OPT(REG_TXB_ADDR)
 
+FN_TX_LOCK_IN_GAME_INFO_PICK:
+#TODO: check from r13 offset if game info is set
+li r3, 1
+stb r3, PSTB_GAME_INFO_OPT(REG_TXB_ADDR)
+
+FN_TX_LOCK_IN_GAME_INFO_SEND:
+# Set Game Info in TX Buffer
+# Copy match struct
+addi r3, REG_TXB_ADDR, PSTB_GAME_INFO_BLOCK
+load r4, 0x80480530 #0x8045ac58
+li r5, MATCH_STRUCT_LEN
+branchl r12, memcpy#( void* dest, const void* src, std::size_t count );
+
+FN_TX_LOCK_IN_SEND:
 # Start finding opponent
 mr r3, REG_TXB_ADDR
 li r4, PSTB_SIZE
@@ -1133,7 +1154,9 @@ blr
 ################################################################################
 FN_GET_RANDOM_STAGE_ID:
 backup
+#branchl r12, 0x802599ec #getStageFromRandomStageSelect
 load r31, 0x803f06d0 # static memory address where stage data starts
+#80C7C9A0
 # this loops is stolen and slightly modified from getStageFromRandomStageSelect
 # at 0x80259b58
 start_loop:
