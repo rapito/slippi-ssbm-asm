@@ -479,7 +479,7 @@ stb r4, PSTB_STAGE_OPT(REG_TXB_ADDR)
 
 FN_TX_LOCK_IN_GAME_INFO_PICK:
 #TODO: check from r13 offset if game info is set
-li r3, 1
+li r3, 0
 stb r3, PSTB_GAME_INFO_OPT(REG_TXB_ADDR)
 
 FN_TX_LOCK_IN_GAME_INFO_SEND:

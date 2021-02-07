@@ -99,8 +99,14 @@ stw r3, SSRB_TERMINATOR(REG_SSRB_ADDR)
 ################################################################################
 # Get match state info
 li r3, 0
+CHECK_MATCH_READY:
 branchl r12, FN_LoadMatchState
 mr REG_MSRB_ADDR, r3
+
+lbz r3, MSRB_IS_MATCH_INFO_READY(REG_MSRB_ADDR)
+cmpwi r3, 0
+mr r3, REG_MSRB_ADDR
+beq CHECK_MATCH_READY
 
 # Prepare player indices
 lbz r3, -0x5108(r13) # Grab the 1p port in use
