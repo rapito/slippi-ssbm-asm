@@ -1,5 +1,5 @@
 ################################################################################
-# Address: 0x802652f4 # CSS_LoadFunction
+# Address: 0x802652dc # CSS_LoadFunction
 ################################################################################
 
 .include "Common/Common.s"
@@ -191,6 +191,4 @@ blr
 
 
 EXIT:
-li r3, 0
-addi r4, r24, 0
-branchl r12, Text_CreateStruct
+lwz	r3, 0x0108 (sp)
