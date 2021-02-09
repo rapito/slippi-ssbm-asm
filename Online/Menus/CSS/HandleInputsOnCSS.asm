@@ -403,11 +403,11 @@ FN_TX_LOCK_IN:
 backup
 
 # Copy game rules first
-branchl r12, 0x801A5244 # GetSSSMatchStruct
-mr r4, r3
-li r5, 0
-li r6, 0
-branchl r12, 0x801a583c #VSCopyCSSInfo
+#branchl r12, 0x801A5244 # GetSSSMatchStruct
+#mr r4, r3
+#li r5, 0
+#li r6, 0
+#branchl r12, 0x801a583c #VSCopyCSSInfo
 
 # Backup stage behavior
 mr  REG_SB,r3
@@ -460,7 +460,9 @@ bge FN_TX_LOCK_IN_STAGE_PICK
 
 FN_TX_LOCK_IN_STAGE_RAND:
 bl FN_GET_RANDOM_STAGE_ID
-li  r4, 1
+li  r4,1
+#li  r3,0
+#li  r4,3
 b FN_TX_LOCK_IN_STAGE_SEND
 
 FN_TX_LOCK_IN_STAGE_UNSET:
@@ -1113,9 +1115,7 @@ blr
 ################################################################################
 FN_GET_RANDOM_STAGE_ID:
 backup
-#branchl r12, 0x802599ec #getStageFromRandomStageSelect
 load r31, 0x803f06d0 # static memory address where stage data starts
-#80C7C9A0
 # this loops is stolen and slightly modified from getStageFromRandomStageSelect
 # at 0x80259b58
 start_loop:

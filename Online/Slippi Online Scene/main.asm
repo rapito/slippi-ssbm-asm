@@ -939,6 +939,42 @@ load r4, 0x80490880
 lbz r3, MSRB_GAME_INFO_BLOCK + 0x63 + 0x24(REG_MSRB_ADDR) # load char 2 color
 stb r3, 0x16(r4)
 
+
+
+
+########################################################
+# Transfer Match Rules to EXI Device
+########################################################
+
+# Prepare buffer for EXI transfer
+li r3, GITB_SIZE  # Store same bytes as Buffer Size
+branchl r12, HSD_MemAlloc
+mr REG_TXB_ADDR, r3 # Save the address where the memory has been allocated to
+
+# Set command in TX buffer
+li r3, CONST_SlippiCmdSetMatchInfo
+stb r3, GITB_CMD(REG_TXB_ADDR)
+
+# Set Game Info in TX Buffer
+# Copy match struct
+addi r3, REG_TXB_ADDR, GITB_GAME_INFO_BLOCK
+load r4, 0x80480530 #0x8045ac58
+li r5, MATCH_STRUCT_LEN
+branchl r12, memcpy#( void* dest, const void* src, std::size_t count );
+
+# transfer the bufffer
+mr r3, REG_TXB_ADDR
+li r4, GITB_SIZE # length of buffer
+li r5, CONST_ExiWrite
+branchl r12, FN_EXITransferBuffer
+
+# free the allocated memory
+mr r3, REG_TXB_ADDR
+branchl r12, HSD_Free
+
+
+
+
 # Free the buffer we allocated to get match settings
 mr r3, REG_MSRB_ADDR
 branchl r12, HSD_Free
