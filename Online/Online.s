@@ -272,7 +272,8 @@ lwz \reg, -0x62A0(\reg)
 .set MSRB_P2_CONNECT_CODE, MSRB_P1_CONNECT_CODE + 10 # string (10) hashtag is shift-jis
 .set MSRB_P3_CONNECT_CODE, MSRB_P2_CONNECT_CODE + 10 # string (10) hashtag is shift-jis
 .set MSRB_P4_CONNECT_CODE, MSRB_P3_CONNECT_CODE + 10 # string (10) hashtag is shift-jis
-.set MSRB_ERROR_MSG, MSRB_P4_CONNECT_CODE + 10 # string (241)
+.set MSRB_STAGES_BLOCK, MSRB_P4_CONNECT_CODE + 10 # u32
+.set MSRB_ERROR_MSG, MSRB_STAGES_BLOCK + 4 # string (241)
 .set ERROR_MESSAGE_LEN, 241
 .set MSRB_GAME_INFO_BLOCK, MSRB_ERROR_MSG + ERROR_MESSAGE_LEN # MATCH_STRUCT_LEN
 .set MSRB_SIZE, MSRB_GAME_INFO_BLOCK + MATCH_STRUCT_LEN
@@ -295,7 +296,8 @@ lwz \reg, -0x62A0(\reg)
 .set PSTB_CHAR_OPT, PSTB_CHAR_COLOR + 1 # u8, 0 = unset, 1 = merge, 2 = clear
 .set PSTB_STAGE_ID, PSTB_CHAR_OPT + 1 # u16
 .set PSTB_STAGE_OPT, PSTB_STAGE_ID + 2 # u8, 0 = unset, 1 = merge, 2 = clear, 3 = random
-.set PSTB_GAME_INFO_OPT, PSTB_STAGE_OPT + 1 # 0 = default, 1 = custom, 2 = RJJ
+.set PSTB_STAGES_BLOCK, PSTB_STAGE_OPT + 1 # u32
+.set PSTB_GAME_INFO_OPT, PSTB_STAGES_BLOCK + 4 # u8, 0 = default, 1 = custom, 2 = RJJ
 .set PSTB_GAME_INFO_BLOCK, PSTB_GAME_INFO_OPT + 1 # MATCH_STRUCT_LEN
 .set PSTB_SIZE, PSTB_GAME_INFO_BLOCK + MATCH_STRUCT_LEN
 

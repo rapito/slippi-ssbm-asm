@@ -492,6 +492,13 @@ load r4, 0x80480530 #0x8045ac58
 li r5, MATCH_STRUCT_LEN
 branchl r12, memcpy#( void* dest, const void* src, std::size_t count );
 
+########################################################
+# Send Stages Selection 
+########################################################
+load r4, 0x8045c388 # Stages Selection
+lwz r3, 0x0(r4)
+stw r3, PSTB_STAGES_BLOCK(REG_TXB_ADDR)
+
 FN_TX_LOCK_IN_SEND:
 # Start finding opponent
 mr r3, REG_TXB_ADDR
