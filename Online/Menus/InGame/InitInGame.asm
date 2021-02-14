@@ -26,7 +26,9 @@ blrl
 .float 270
 .set DOFST_TEXT_Y_POS, DOFST_TEXT_X_POS + 4
 .float 207
-.set DOFST_TEXT_SIZE, DOFST_TEXT_Y_POS + 4
+.set DOFST_CR_TEXT_Y_POS, DOFST_TEXT_Y_POS + 4
+.float 195
+.set DOFST_TEXT_SIZE, DOFST_CR_TEXT_Y_POS + 4
 .float 0.33
 
 # BG values
@@ -61,8 +63,12 @@ blrl
 .float 0
 
 # strings
-.set DOFST_TEXT_DELAYSTRING, DOFST_FLOAT_ZERO + 4
+.set DOFST_TEXT_COLOR_WHITE, DOFST_FLOAT_ZERO + 4
+.long 0xFFFFFFFF # white
+.set DOFST_TEXT_DELAYSTRING, DOFST_TEXT_COLOR_WHITE + 4
 .string "Delay: %df"
+.set DOFST_TEXT_CUSTOM_RULES_STRING, DOFST_TEXT_DELAYSTRING + 11
+.string "Custom Rules"
 .align 2
 
 #########################################
@@ -192,21 +198,36 @@ lfs f1, DOFST_TEXT_BASE_CANVAS_SCALING(REG_DATA_ADDR)
 stfs f1, 0x24(REG_TEXT_STRUCT)
 stfs f1, 0x28(REG_TEXT_STRUCT)
 
-# Initialize header
-lfs f1, DOFST_TEXT_X_POS(REG_DATA_ADDR)
-lfs f2, DOFST_TEXT_Y_POS(REG_DATA_ADDR)
+# Initialize Delay Text
 mr r3, REG_TEXT_STRUCT
-addi r4, REG_DATA_ADDR, DOFST_TEXT_DELAYSTRING
-lbz r5, ODB_DELAY_FRAMES(REG_ODB_ADDRESS)
-branchl r12, Text_InitializeSubtext
-
-# Set header text size
-mr r3, REG_TEXT_STRUCT
-li r4, 0
-# Scale text X based on Aspect Ratio
+addi r4, REG_DATA_ADDR, DOFST_TEXT_COLOR_WHITE # Text Color
+li r5, 0 # No outlines
+# r6 = outline color
+addi r7, REG_DATA_ADDR, DOFST_TEXT_DELAYSTRING # r7 message String pointer
+lbz r8, ODB_DELAY_FRAMES(REG_ODB_ADDRESS)
 lfs f1, DOFST_TEXT_SIZE(REG_DATA_ADDR)
 lfs f2, DOFST_TEXT_SIZE(REG_DATA_ADDR)
-branchl r12, Text_UpdateSubtextSize
+lfs f3, DOFST_TEXT_X_POS(REG_DATA_ADDR)
+lfs f4, DOFST_TEXT_Y_POS(REG_DATA_ADDR)
+branchl r12, FG_CreateSubtext
+
+# if custom rules are set let players know
+lbz r3, MSRB_IS_CUSTOM_RULES(REG_MSRB_ADDR)
+cmpwi r3, 0
+beq SKIP_CUSTOM_RULES
+# Initialize CR Text
+mr r3, REG_TEXT_STRUCT
+addi r4, REG_DATA_ADDR, DOFST_TEXT_COLOR_WHITE # Text Color
+li r5, 0 # No outlines
+# r6 = outline color
+addi r7, REG_DATA_ADDR, DOFST_TEXT_CUSTOM_RULES_STRING # r7 message String pointer
+lbz r8, ODB_DELAY_FRAMES(REG_ODB_ADDRESS)
+lfs f1, DOFST_TEXT_SIZE(REG_DATA_ADDR)
+lfs f2, DOFST_TEXT_SIZE(REG_DATA_ADDR)
+lfs f3, DOFST_TEXT_X_POS(REG_DATA_ADDR)
+lfs f4, DOFST_CR_TEXT_Y_POS(REG_DATA_ADDR)
+branchl r12, FG_CreateSubtext
+SKIP_CUSTOM_RULES:
 
 ##########################
 ## Display Player Names ##
