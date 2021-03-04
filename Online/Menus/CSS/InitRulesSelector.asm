@@ -17,6 +17,11 @@
 getMinorMajor r3
 cmpwi r3, SCENE_ONLINE_CSS
 bne EXIT # If not online CSS, continue as normal
+
+lbz r4, OFST_R13_ONLINE_MODE(r13)
+cmpwi r4, ONLINE_MODE_DIRECT
+blt EXIT # exit if not on DIRECT or TEAMS mode
+
 b LOAD_START
 
 ################################################################################
@@ -49,24 +54,33 @@ li r5, 0x80
 branchl r12, GObj_Create
 mr REG_RULES_BTN_GOBJ, r3 # save GOBJ pointer
 
+################################################################################
 # create jbobj (Rules Container)
-lwz r3, -0x49C8(r13) # = 0x80f454c8 pointer to MenuModel JObj Descriptor
+################################################################################
+# We are going to create the whole VS Menu and remove all unnecesary objects
+
+lwz r3, -0x49C8(r13) # pointer to MenuModel JObj Descriptor
 lwz	r3, 0x0030 (r3)
-lwz r3, 0x08(r3) # move to it's first child
 branchl r12,JObj_LoadJoint #Create Jboj
 mr REG_RULES_BTN_JOBJ,r3
 
-# remove all dobjs and leave the button
-# jobj
-# - dobj
+# Remove all Jobjs by clearing out the second jobj child
+lwz r3, 0x10(r3) # get first child
+lwz r3, 0x8(r3)  # get next sibling
+branchl r12, 0x80371590 # JObjRemoveAll(jobj)
+
+# Fix JObj so we only get
+# Button jobj:
+# - dobj - will be replaced with next dobj
 # - dobj <- This is the one we want
-# - dobj
-mr r3, REG_RULES_BTN_JOBJ
+# - dobj - will be cleared out
+lwz r3, 0x10(REG_RULES_BTN_JOBJ) # get first child
 branchl r12, 0x80371BEC # HSD_JObjGetDObj(HSD_JObj* jobj)
 lwz r5, 0x04(r3) # get dobj we want!
 li r4, 0
 stw r4, 0x04(r5) # clear out it's next dobj
-stw r5, 0x18(REG_RULES_BTN_JOBJ) # replace dobj with the one we want
+lwz r3, 0x10(REG_RULES_BTN_JOBJ) # get first child
+stw r5, 0x18(r3) # replace dobj with the one we want
 
 # Add JOBJ To GObj
 mr  r3,REG_RULES_BTN_GOBJ
@@ -98,6 +112,11 @@ b EXIT
 FN_RULES_SELECTOR_THINK:
 blrl
 backup
+
+# Check if character has been selected, if not exit
+lbz r3, -0x49A9(r13)
+cmpwi r3, 0
+beq FN_RULES_SELECTOR_THINK_EXIT
 
 mr REG_RULES_BTN_GOBJ, r3
 lwz REG_RULES_BTN_JOBJ, ENTITY_DATA_OFFSET(REG_RULES_BTN_GOBJ)
