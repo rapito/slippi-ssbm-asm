@@ -123,32 +123,10 @@ beq HANDLE_ERROR
 
 b SKIP_START_MATCH
 
-.set PAD_LEFT, 0x01
-.set PAD_RIGHT, 0x02
-.set PAD_DOWN, 0x04
-.set PAD_UP, 0x08
 ################################################################################
 # Case 1: Handle idle case
 ################################################################################
 HANDLE_IDLE:
-mr r3, REG_INPUTS
-
-cmpwi REG_INPUTS, PAD_LEFT
-beq START_TEST
-cmpwi REG_INPUTS, PAD_RIGHT
-beq START_TEST
-cmpwi REG_INPUTS, PAD_UP
-beq START_TEST
-cmpwi REG_INPUTS, PAD_DOWN
-beq START_TEST
-b SKIP_TEST
-
-START_TEST:
-
-bl FN_LOAD_RULES_MENU
-
-SKIP_TEST:
-
 # uncomment to debug the chat window
 #bl FN_CHECK_CHAT_INPUTS
 
