@@ -18,16 +18,7 @@
 .set PAD_RIGHT, 0x02
 .set PAD_DOWN, 0x04
 .set PAD_UP, 0x08
-
-.set L_PAD_LEFT, 0x40+PAD_LEFT
-.set L_PAD_RIGHT, 0x40+PAD_RIGHT
-.set L_PAD_DOWN, 0x40+PAD_DOWN
-.set L_PAD_UP, 0x40+PAD_UP
-
-.set R_PAD_LEFT, 0x20+PAD_LEFT
-.set R_PAD_RIGHT, 0x20+PAD_RIGHT
-.set R_PAD_DOWN, 0x20+PAD_DOWN
-.set R_PAD_UP, 0x20+PAD_UP
+.set B_BUTTON, 0x200
 
 # Deal with replaced codeline
 beq+ START
@@ -98,12 +89,13 @@ b SOUND_PLAY_END
 PLAY_BACK_SOUND_ON_RESET:
 # Play "back" sound
 li	r3, 0
-branchl r12, SFX_Menu_CommonSound
-b SOUND_PLAY_END
+b PLAY_SOUND
 
 PLAY_ERROR_SOUND_ON_ERROR:
 # Play "error" sound
 li	r3, 3
+
+PLAY_SOUND:
 branchl r12, SFX_Menu_CommonSound
 
 SOUND_PLAY_END:
@@ -471,7 +463,7 @@ li r5, MATCH_STRUCT_LEN
 branchl r12, memcpy#( void* dest, const void* src, std::size_t count );
 
 ########################################################
-# Send Stages Selection 
+# Send Stages Selection
 ########################################################
 load r4, 0x8045c388 # Stages Selection
 lwz r3, 0x0(r4)
@@ -600,10 +592,15 @@ blr
 FN_CHECK_CHAT_INPUTS:
 backup
 
-# Always store last input in CSS data table
-mr r3, REG_INPUTS
-stb r3, CSSDT_CHAT_LAST_INPUT(REG_CSSDT_ADDR)
+# uncomment this line to disable B press on chat window
+# b SKIP_CHAT_WINDOW_B_PRESS
 
+# if b was pressed, set that as last input
+cmpwi REG_INPUTS, B_BUTTON
+bne SKIP_CHAT_WINDOW_B_PRESS
+sth REG_INPUTS, CSSDT_CHAT_LAST_INPUT(REG_CSSDT_ADDR)
+
+SKIP_CHAT_WINDOW_B_PRESS:
 cmpwi REG_INPUTS, PAD_LEFT
 beq HANDLE_CHAT_INPUT_PRESSED
 cmpwi REG_INPUTS, PAD_RIGHT
@@ -611,27 +608,12 @@ beq HANDLE_CHAT_INPUT_PRESSED
 cmpwi REG_INPUTS, PAD_UP
 beq HANDLE_CHAT_INPUT_PRESSED
 cmpwi REG_INPUTS, PAD_DOWN
-beq HANDLE_CHAT_INPUT_PRESSED
-
-cmpwi REG_INPUTS, L_PAD_LEFT
-beq HANDLE_CHAT_INPUT_PRESSED
-cmpwi REG_INPUTS, L_PAD_RIGHT
-beq HANDLE_CHAT_INPUT_PRESSED
-cmpwi REG_INPUTS, L_PAD_UP
-beq HANDLE_CHAT_INPUT_PRESSED
-cmpwi REG_INPUTS, L_PAD_DOWN
-beq HANDLE_CHAT_INPUT_PRESSED
-
-cmpwi REG_INPUTS, R_PAD_LEFT
-beq HANDLE_CHAT_INPUT_PRESSED
-cmpwi REG_INPUTS, R_PAD_RIGHT
-beq HANDLE_CHAT_INPUT_PRESSED
-cmpwi REG_INPUTS, R_PAD_UP
-beq HANDLE_CHAT_INPUT_PRESSED
-cmpwi REG_INPUTS, R_PAD_DOWN
 bnel HANDLE_SKIP_CHAT_INPUT
 
 HANDLE_CHAT_INPUT_PRESSED:
+
+# Store last input in CSS data table if part of the allowed inputs
+sth REG_INPUTS, CSSDT_CHAT_LAST_INPUT(REG_CSSDT_ADDR)
 
 # If chat window is already open, skip
 lbz r3, CSSDT_CHAT_WINDOW_OPENED(REG_CSSDT_ADDR)
@@ -703,11 +685,9 @@ backup
 bl TEXT_PROPERTIES
 mflr REG_TEXT_PROPERTIES
 
-# Play a sound indicating a new message TODO: move to a function
-li r3, 0xb7
-li r4, 127
-li r5, 64
-branchl r12, 0x800237a8 # SFX_PlaySoundAtFullVolume
+# Play common sound
+li	r3, 2
+branchl r12, SFX_Menu_CommonSound
 
 # Save in memory that we have the chat opened and store the pad input
 mr r3, REG_CHAT_INPUTS # controller input
@@ -743,8 +723,15 @@ lwz r3, 0x18(r3) # pointer to our custom bg jobj
 branchl r12,0x80370e44 #Create Jboj
 mr  REG_CHAT_JOBJ,r3
 
-lfs f1, TPO_CHAT_WINDOW_X(REG_TEXT_PROPERTIES)
-lfs f2, TPO_CHAT_WINDOW_Y(REG_TEXT_PROPERTIES)
+# Move to the left if widescreen is enabled
+lfs f1, TPO_CHAT_WINDOW_X(REG_TEXT_PROPERTIES) # X POS
+lbz r4, OFST_R13_ISWIDESCREEN(r13)
+cmpwi r4, 0
+beq END_SET_CHAT_WINDOW_POS_X
+lfs f1, TPO_CHAT_WINDOW_X_WIDESCREEN(REG_TEXT_PROPERTIES) # X POS Widescreen
+
+END_SET_CHAT_WINDOW_POS_X:
+lfs f2, TPO_CHAT_WINDOW_Y(REG_TEXT_PROPERTIES) # Y POS
 stfs f1, 0x38(r3) # X POS
 stfs f2, 0x3C(r3) # Y POS
 
@@ -801,8 +788,8 @@ blrl
 .set CHAT_JOBJ_OFFSET, 0x28 # offset from GOBJ to HSD Object (Jobj we assigned)
 .set CHAT_ENTITY_DATA_OFFSET, 0x2C # offset from GOBJ to entity data
 .set CHAT_WINDOW_IDLE_TIMER_TIME, 0x90 # initial idle timer before window disappears
-.set CHAT_WINDOW_IDLE_TIMER_DELAY, 0x0A # initial delay before allowing to send messages
-.set CHAT_WINDOW_MAX_MESSAGES, 0x04 # Max messages allowed before blocking new ones
+.set CHAT_WINDOW_IDLE_TIMER_DELAY, 0x06 # initial delay before allowing to send messages
+.set CHAT_WINDOW_MAX_MESSAGES, 0x03 # Max messages allowed before blocking new ones
 .set CHAT_WINDOW_HEADER_MARGIN_LINES, 0x2 # lines away from which to start drawing messages away from header
 
 mr REG_CHAT_WINDOW_GOBJ, r3 # Store GOBJ pointer 0x801954A4
@@ -815,7 +802,11 @@ lbz REG_CHAT_WINDOW_INPUT, CSSCWDT_INPUT(REG_CHAT_WINDOW_GOBJ_DATA_ADDR)
 lbz REG_CHAT_WINDOW_TIMER, CSSCWDT_TIMER(REG_CHAT_WINDOW_GOBJ_DATA_ADDR)
 lwz REG_CHAT_WINDOW_TEXT_STRUCT_ADDR, CSSCWDT_TEXT_STRUCT_ADDR(REG_CHAT_WINDOW_GOBJ_DATA_ADDR)
 lwz REG_CHAT_WINDOW_CSSDT_ADDR, CSSCWDT_CSSDT_ADDR(REG_CHAT_WINDOW_GOBJ_DATA_ADDR)
-lbz REG_CHAT_WINDOW_SECOND_INPUT, CSSDT_CHAT_LAST_INPUT(REG_CHAT_WINDOW_CSSDT_ADDR)
+lhz REG_CHAT_WINDOW_SECOND_INPUT, CSSDT_CHAT_LAST_INPUT(REG_CHAT_WINDOW_CSSDT_ADDR)
+
+# clear last input
+li r3, 0
+sth r3, CSSDT_CHAT_LAST_INPUT(REG_CHAT_WINDOW_CSSDT_ADDR)
 
 # if text is not initialized, assume we need to initalize everything
 # else skip to idle timer check
@@ -840,17 +831,32 @@ branchl r12, FN_LoadChatMessageProperties
 mr REG_CHAT_TEXT_PROPERTIES, r3
 
 # Create Text Struct
-li r3, 0x1 # Text kerning to close
-li r4, 0x0 # Align Left
-lfs f1, TPO_BASE_Z(REG_TEXT_PROPERTIES) # Z offset
-lfs f2, TPO_BASE_CANVAS_SCALING(REG_TEXT_PROPERTIES) # Scale
-bl FN_CREATE_TEXT_STRUCT # 801954ec
-
+li r3, 0
+li r4, 0
+branchl r12, Text_CreateStruct
 # Save Text Struct Address
 mr REG_CHAT_WINDOW_TEXT_STRUCT_ADDR, r3
 stw REG_CHAT_WINDOW_TEXT_STRUCT_ADDR, CSSCWDT_TEXT_STRUCT_ADDR(REG_CHAT_WINDOW_GOBJ_DATA_ADDR)
 
+li r3, 0x1 # Text kerning to close
+li r4, 0x0 # Align Left
+lfs f1, TPO_BASE_Z(REG_TEXT_PROPERTIES) # Z offset
+lfs f2, TPO_BASE_CANVAS_SCALING(REG_TEXT_PROPERTIES) # Scale
+stb r3, 0x49(REG_CHAT_WINDOW_TEXT_STRUCT_ADDR) # Set text kerning
+stb r4, 0x4A(REG_CHAT_WINDOW_TEXT_STRUCT_ADDR) # Set text alignment
+stfs f1, 0x8(REG_CHAT_WINDOW_TEXT_STRUCT_ADDR) # set z offset
+stfs f2, 0x24(REG_CHAT_WINDOW_TEXT_STRUCT_ADDR) # set scale
+stfs f2, 0x28(REG_CHAT_WINDOW_TEXT_STRUCT_ADDR) # set scale
+
 # Create Subtext: Header
+# Move to the left if widescreen is enabled
+lfs f2, TPO_CHAT_HEADER_X(REG_TEXT_PROPERTIES) # X POS
+lbz r3, OFST_R13_ISWIDESCREEN(r13)
+cmpwi r3, 0
+beq END_SET_CHAT_HEADER_POS_X
+lfs f2, TPO_CHAT_HEADER_X_WIDESCREEN(REG_TEXT_PROPERTIES) # X POS Widescreen
+
+END_SET_CHAT_HEADER_POS_X:
 mr r3, REG_CHAT_WINDOW_TEXT_STRUCT_ADDR # Text Struct Address
 addi r4, REG_TEXT_PROPERTIES, TPO_COLOR_YELLOW # Text Color
 li r5, 0 # no outline
@@ -858,9 +864,7 @@ addi r6, REG_TEXT_PROPERTIES, TPO_COLOR_WHITE # Text Color
 addi r7, REG_TEXT_PROPERTIES, TPO_STRING_CHAT_SHORTCUTS # String Format pointer
 addi r8, REG_CHAT_TEXT_PROPERTIES, 0x4 # String pointer (header starts at 0x4)
 lfs f1, TPO_CHAT_LABEL_SIZE(REG_TEXT_PROPERTIES) # Text Size
-lfs f2, TPO_CHAT_LABEL_SIZE(REG_TEXT_PROPERTIES) # Text Size
-lfs f3, TPO_CHAT_HEADER_X(REG_TEXT_PROPERTIES) # X POS
-lfs f4, TPO_CHAT_LABEL_Y(REG_TEXT_PROPERTIES) # Y POS
+lfs f3, TPO_CHAT_LABEL_Y(REG_TEXT_PROPERTIES) # Y POS
 branchl r12, FG_CreateSubtext
 mr r4, r3 # sub text index for next function call
 
@@ -874,7 +878,7 @@ addi r3, r11, CHAT_WINDOW_HEADER_MARGIN_LINES
 lfs f2, TPO_CHAT_LABEL_MARGIN(REG_TEXT_PROPERTIES) # margin between labels
 branchl r12, FN_MultiplyRWithF
 lfs f3, TPO_CHAT_LABEL_Y(REG_TEXT_PROPERTIES) # Y POS
-fadds f4, f3, f1
+fadds f3, f3, f1
 #fmr f3, f1 # 0x80195588
 
 # calculate address of label
@@ -907,14 +911,22 @@ mr r3, REG_CHAT_WINDOW_INPUT
 branchl r12, FN_LoadChatMessageProperties
 mr r7, r4 # message String pointer
 
+# Move to the left if widescreen is enabled
+lfs f2, TPO_CHAT_LABEL_X(REG_TEXT_PROPERTIES) # X POS
+lbz r3, OFST_R13_ISWIDESCREEN(r13)
+cmpwi r3, 0
+beq END_SET_CHAT_LABEL_POS_X
+lfs f2, TPO_CHAT_LABEL_X_WIDESCREEN(REG_TEXT_PROPERTIES) # X POS Widescreen
+
+END_SET_CHAT_LABEL_POS_X:
 mr r3, REG_CHAT_WINDOW_TEXT_STRUCT_ADDR # Text Struct Address
 addi r4, REG_TEXT_PROPERTIES, TPO_COLOR_WHITE # Text Color
 li r5, 0 # No outlines
 addi r6, REG_TEXT_PROPERTIES, TPO_COLOR_WHITE # Text Color
 # r7 message String pointer
 lfs f1, TPO_CHAT_LABEL_SIZE(REG_TEXT_PROPERTIES) # Text Size
-lfs f2, TPO_CHAT_LABEL_SIZE(REG_TEXT_PROPERTIES) # Text Size
-lfs f3, TPO_CHAT_LABEL_X(REG_TEXT_PROPERTIES) # X POS
+
+
 branchl r12, FG_CreateSubtext
 mr r11, r3 # save subtext index
 
@@ -927,20 +939,45 @@ bne CSS_ONLINE_CHAT_WINDOW_THINK_CREATE_LABELS_LOOP_START
 b CSS_ONLINE_CHAT_WINDOW_THINK_EXIT # just initialize on first loop
 
 CSS_ONLINE_CHAT_WINDOW_THINK_CHECK_INPUT: # 0x8019562C
+
+# If theres is no chat messages skip timer check
+lbz r3, CSSDT_CHAT_LOCAL_MSG_COUNT(REG_CHAT_WINDOW_CSSDT_ADDR)
+cmpwi r3, 0
+beq SKIP_CSS_ONLINE_CHAT_WINDOW_THINK_CHECK_IDLE_TIMER
+
 # prevent spam: Only allow input if a few frames have passed
 lbz r3, CSSCWDT_TIMER(REG_CHAT_WINDOW_GOBJ_DATA_ADDR)
 cmpwi r3, CHAT_WINDOW_IDLE_TIMER_TIME-CHAT_WINDOW_IDLE_TIMER_DELAY
 bgt CSS_ONLINE_CHAT_WINDOW_THINK_CHECK_IDLE_TIMER
+SKIP_CSS_ONLINE_CHAT_WINDOW_THINK_CHECK_IDLE_TIMER:
+
+# logf LOG_LEVEL_WARN, "msg input: %d", "mr r5, REG_CHAT_WINDOW_SECOND_INPUT"
+
+# if B pressed, close chat window
+cmpwi REG_CHAT_WINDOW_SECOND_INPUT, B_BUTTON
+bne SKIP_CSS_ONLINE_CHAT_WINDOW_THINK_CLOSE_CHAT_WINDOW
+
+# Play return SFX
+li  r3, 0
+branchl r12,SFX_Menu_CommonSound
+b CSS_ONLINE_CHAT_WINDOW_THINK_REMOVE_PROC
+
+SKIP_CSS_ONLINE_CHAT_WINDOW_THINK_CLOSE_CHAT_WINDOW:
 
 # load last input from the CSS Data table
 # if there's any input, Send Message
 cmpwi REG_CHAT_WINDOW_SECOND_INPUT, 0
 beq CSS_ONLINE_CHAT_WINDOW_THINK_CHECK_IDLE_TIMER
 
-# if current message count is X, do not allow to send another
-lbz r3, CSSDT_CHAT_MSG_COUNT(REG_CHAT_WINDOW_CSSDT_ADDR)
+# if current local message count is X, do not allow to send another
+lbz r3, CSSDT_CHAT_LOCAL_MSG_COUNT(REG_CHAT_WINDOW_CSSDT_ADDR)
 cmpwi r3, CHAT_WINDOW_MAX_MESSAGES
-bge CSS_ONLINE_CHAT_WINDOW_THINK_CHECK_IDLE_TIMER
+bge CSS_ONLINE_CHAT_WINDOW_THINK_BLOCK_MESSAGE
+
+# if current message count is X+2, do not allow to send another
+lbz r3, CSSDT_CHAT_MSG_COUNT(REG_CHAT_WINDOW_CSSDT_ADDR)
+cmpwi r3, CHAT_WINDOW_MAX_MESSAGES+2
+bge CSS_ONLINE_CHAT_WINDOW_THINK_BLOCK_MESSAGE
 
 # Clear Timer
 li r3, 0
@@ -958,6 +995,11 @@ bl FN_SEND_CHAT_COMMAND
 
 b CSS_ONLINE_CHAT_WINDOW_THINK_EXIT
 
+CSS_ONLINE_CHAT_WINDOW_THINK_BLOCK_MESSAGE:
+# Play SFX
+li  r3,3
+branchl r12,SFX_Menu_CommonSound
+
 CSS_ONLINE_CHAT_WINDOW_THINK_CHECK_IDLE_TIMER:
 # check timer and decrease until is 0
 cmpwi REG_CHAT_WINDOW_TIMER, 0
@@ -974,10 +1016,6 @@ CSS_ONLINE_CHAT_WINDOW_THINK_REMOVE_PROC: # TODO: is this the proper way to dele
 # clear out chat window opened flag on the CSS Data Table
 li r3, 0
 stb r3, CSSDT_CHAT_WINDOW_OPENED(REG_CHAT_WINDOW_CSSDT_ADDR)
-
-# remove proc
-mr r3, REG_CHAT_WINDOW_GOBJ
-branchl r12, GObj_RemoveProc
 
 # destroy gobj
 mr r3, REG_CHAT_WINDOW_GOBJ
@@ -1007,9 +1045,13 @@ blrl
 # Chat Labels Propiertes
 .set TPO_CHAT_HEADER_X, TPO_BASE_CANVAS_SCALING + 4
 .float -300
-.set TPO_CHAT_LABEL_X, TPO_CHAT_HEADER_X + 4
+.set TPO_CHAT_HEADER_X_WIDESCREEN, TPO_CHAT_HEADER_X + 4
+.float -452
+.set TPO_CHAT_LABEL_X, TPO_CHAT_HEADER_X_WIDESCREEN + 4
 .float -285
-.set TPO_CHAT_LABEL_Y, TPO_CHAT_LABEL_X + 4
+.set TPO_CHAT_LABEL_X_WIDESCREEN, TPO_CHAT_LABEL_X + 4
+.float -437
+.set TPO_CHAT_LABEL_Y, TPO_CHAT_LABEL_X_WIDESCREEN + 4
 .float 79
 .set TPO_CHAT_LABEL_SIZE, TPO_CHAT_LABEL_Y + 4
 .float 0.45
@@ -1019,7 +1061,9 @@ blrl
 # Chat Window Properties
 .set TPO_CHAT_WINDOW_X, TPO_CHAT_LABEL_MARGIN + 4
 .float -20
-.set TPO_CHAT_WINDOW_Y, TPO_CHAT_WINDOW_X + 4
+.set TPO_CHAT_WINDOW_X_WIDESCREEN, TPO_CHAT_WINDOW_X + 4
+.float -35
+.set TPO_CHAT_WINDOW_Y, TPO_CHAT_WINDOW_X_WIDESCREEN + 4
 .float -16.5
 
 # Text colors
@@ -1029,102 +1073,9 @@ blrl
 .long 0xffea2fFF
 
 # String Properties
-.set TPO_EMPTY_STRING, TPO_COLOR_YELLOW + 4
-.string ""
-.set TPO_STRING_CHAT_SHORTCUTS, TPO_EMPTY_STRING + 1
+.set TPO_STRING_CHAT_SHORTCUTS, TPO_COLOR_YELLOW + 4
 .string "Chat: %s"
-.set TPO_STRING_CHAT_LABEL_FORMAT, TPO_STRING_CHAT_SHORTCUTS + 9
-.string "%s: %s"
-.set TPO_STRING_GAME, TPO_STRING_CHAT_LABEL_FORMAT + 7
-.string "Game"
-.set TPO_STRING_UP, TPO_STRING_GAME + 5
-.string "U"
-.set TPO_STRING_LEFT, TPO_STRING_UP + 2
-.string "L"
-.set TPO_STRING_RIGHT, TPO_STRING_LEFT + 2
-.string "R"
-.set TPO_STRING_DOWN, TPO_STRING_RIGHT + 2
-.string "D"
-.set TPO_STRING_PLUS, TPO_STRING_DOWN + 2
-.short 0x817B # ＋
-.byte 0x00
 .align 2
-
-################################################################################
-# Function: Initializes Text struct
-# r3 = kerning, r4 = alignment, f1 = z offset, f2 = scaling
-################################################################################
-FN_CREATE_TEXT_STRUCT:
-# gp registers
-.set REG_KERNING, 22
-.set REG_ALIGNMENT, REG_KERNING+1
-.set REG_TEXT_STRUCT_ADDR, REG_ALIGNMENT+1
-# float registers
-.set REG_Z_OFFSET, REG_KERNING
-.set REG_SCALING, REG_Z_OFFSET+1
-
-# Save arguments
-mr REG_KERNING, r3
-mr REG_ALIGNMENT, r4
-
-fmr REG_Z_OFFSET, f1
-fmr REG_SCALING, f2
-backup
-
-# Create Text Struct
-li r3, 0 # 0x8019563C
-li r4, 0
-branchl r12, Text_CreateStruct
-mr REG_TEXT_STRUCT_ADDR, r3
-
-# Set text kerning
-stb REG_KERNING, 0x49(REG_TEXT_STRUCT_ADDR)
-# Set text alignment
-stb REG_ALIGNMENT, 0x4A(REG_TEXT_STRUCT_ADDR)
-# set z offset
-stfs REG_Z_OFFSET, 0x8(REG_TEXT_STRUCT_ADDR)
-# set scale
-stfs REG_SCALING, 0x24(REG_TEXT_STRUCT_ADDR)
-stfs REG_SCALING, 0x28(REG_TEXT_STRUCT_ADDR)
-
-# Return text struct Pointer in r3
-mr r3, REG_TEXT_STRUCT_ADDR
-restore
-blr
-
-
-################################################################################
-# Function: Gets Random Stage ID From Settings
-# return r3=stage id
-# Stolen from getStageFromRandomStageSelect
-################################################################################
-FN_GET_RANDOM_STAGE_ID:
-backup
-load r31, 0x803f06d0 # static memory address where stage data starts
-# this loops is stolen and slightly modified from getStageFromRandomStageSelect
-# at 0x80259b58
-start_loop:
-li	r3, 29
-branchl r12, HSD_Randi
-
-mulli	r4, r3, 28
-addi	r0, r4, 4
-lwzx	r0, r31, r0
-addi	r30, r3, 0
-cmpwi	r0, 0
-bne start_loop
-
-addi	r0, r4, 10
-lbzx	r3, r31, r0
-branchl r12, 0x80164330 # Stage_CheckIfStageUnlocked/Enabled
-cmpwi r3, 1
-bne start_loop
-
-mr r3, r30
-branchl r12, 0x801641cc # RandomStageSelectID->ExternalStageID
-restore
-blr
-
 
 ################################################################################
 # Skip starting match
