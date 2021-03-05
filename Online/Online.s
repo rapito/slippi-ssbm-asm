@@ -283,6 +283,14 @@ lwz \reg, -0x62A0(\reg)
 .set MSRB_SIZE, MSRB_GAME_INFO_BLOCK + MATCH_STRUCT_LEN
 
 ################################################################################
+# Match Info Transfer Buffer
+################################################################################
+.set MITB_CMD, 0 # u8
+.set MITB_GAME_INFO_BLOCK, MITB_CMD + 1
+.set MITB_PADDING, MITB_GAME_INFO_BLOCK + MATCH_STRUCT_LEN
+.set MITB_SIZE, MITB_PADDING + 7
+
+################################################################################
 # Player Selections Transfer Buffer
 ################################################################################
 .set PSTB_CMD, 0 # u8

@@ -9,6 +9,7 @@
 .set REG_RXB_ADDRESS, 26
 .set REG_SSRB_ADDR, 25
 .set REG_MSRB_ADDR, 24
+.set REG_TXB_ADDR, REG_MSRB_ADDR-1
 
 # Run replaced code
 branchl r12, 0x802254B8
@@ -19,6 +20,36 @@ backup
 getMinorMajor r3
 cmpwi r3, SCENE_ONLINE_IN_GAME
 bne GECKO_EXIT
+
+########################################################
+# Transfer Match Rules to EXI Device
+########################################################
+
+# Prepare buffer for EXI transfer
+li r3, MITB_SIZE  # Store same bytes as Buffer Size
+branchl r12, HSD_MemAlloc
+mr REG_TXB_ADDR, r3 # Save the address where the memory has been allocated to
+
+# Set command in TX buffer
+li r3, CONST_SlippiCmdSetMatchInfo
+stb r3, MITB_CMD(REG_TXB_ADDR)
+
+# Set Match Info in TX Buffer
+# Copy match struct
+addi r3, REG_TXB_ADDR, MITB_GAME_INFO_BLOCK
+load r4, 0x80480530 #0x8045ac58
+li r5, MATCH_STRUCT_LEN
+branchl r12, memcpy#( void* dest, const void* src, std::size_t count );
+
+# transfer the bufffer
+mr r3, REG_TXB_ADDR
+li r4, MITB_SIZE # length of buffer
+li r5, CONST_ExiWrite
+branchl r12, FN_EXITransferBuffer
+
+# free the allocated memory
+mr r3, REG_TXB_ADDR
+branchl r12, HSD_Free
 
 ################################################################################
 # Initialize Online Data Buffers

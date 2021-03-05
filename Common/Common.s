@@ -342,6 +342,7 @@ add r3, r3, r4
 .set CONST_SlippiCmdSendChatMessage,0xBB
 .set CONST_SlippiCmdGetNewSeed,0xBC
 .set CONST_SlippiCmdReportMatch,0xBD
+.set CONST_SlippiCmdSetMatchInfo,0xBE
 
 # For Slippi file loads
 .set CONST_SlippiCmdFileLength, 0xD1
