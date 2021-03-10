@@ -422,8 +422,10 @@ cmpwi REG_SB, 0
 bge FN_TX_LOCK_IN_STAGE_PICK
 
 FN_TX_LOCK_IN_STAGE_RAND:
-li  r3,0
-li  r4,3
+bl FN_GET_RANDOM_STAGE_ID
+li  r4,1
+#li  r3,0
+#li  r4,3
 b FN_TX_LOCK_IN_STAGE_SEND
 
 FN_TX_LOCK_IN_STAGE_UNSET:
@@ -439,6 +441,13 @@ b FN_TX_LOCK_IN_STAGE_SEND
 FN_TX_LOCK_IN_STAGE_SEND:
 sth r3, PSTB_STAGE_ID(REG_TXB_ADDR)
 stb r4, PSTB_STAGE_OPT(REG_TXB_ADDR)
+
+########################################################
+# Send Stages Selection 
+########################################################
+load r4, 0x8045c388 # Random Stages Selection Rules 
+lwz r3, 0x0(r4)
+stw r3, PSTB_STAGES_BLOCK(REG_TXB_ADDR)
 
 # Start finding opponent
 mr r3, REG_TXB_ADDR
@@ -1018,6 +1027,38 @@ blrl
 .set TPO_STRING_CHAT_SHORTCUTS, TPO_COLOR_YELLOW + 4
 .string "Chat: %s"
 .align 2
+
+################################################################################
+# Function: Gets Random Stage ID From Settings
+# return r3=stage id
+# Stolen from getStageFromRandomStageSelect
+################################################################################
+FN_GET_RANDOM_STAGE_ID:
+backup
+load r31, 0x803f06d0 # static memory address where stage data starts
+# this loops is stolen and slightly modified from getStageFromRandomStageSelect
+# at 0x80259b58
+start_loop:
+li	r3, 29
+branchl r12, HSD_Randi
+
+mulli	r4, r3, 28
+addi	r0, r4, 4
+lwzx	r0, r31, r0
+addi	r30, r3, 0
+cmpwi	r0, 0
+bne start_loop
+
+addi	r0, r4, 10
+lbzx	r3, r31, r0
+branchl r12, 0x80164330 # Stage_CheckIfStageUnlocked/Enabled
+cmpwi r3, 1
+bne start_loop
+
+mr r3, r30
+branchl r12, 0x801641cc # RandomStageSelectID->ExternalStageID
+restore
+blr
 
 ################################################################################
 # Skip starting match

@@ -123,8 +123,14 @@ stw r3, SSRB_TERMINATOR(REG_SSRB_ADDR)
 ################################################################################
 # Get match state info
 li r3, 0
+CHECK_MATCH_READY:
 branchl r12, FN_LoadMatchState
 mr REG_MSRB_ADDR, r3
+
+lbz r3, MSRB_IS_MATCH_INFO_READY(REG_MSRB_ADDR)
+cmpwi r3, 0
+mr r3, REG_MSRB_ADDR
+beq CHECK_MATCH_READY # loop until match info is synched
 
 # Prepare player indices
 lbz r3, -0x5108(r13) # Grab the 1p port in use
@@ -148,6 +154,11 @@ mr r3, r31
 addi r4, REG_MSRB_ADDR, MSRB_GAME_INFO_BLOCK
 li r5, MATCH_STRUCT_LEN
 branchl r12, memcpy
+
+# Sync & Copy Game Settings
+load r4, 0x8045c388 # Random Stages
+lwz r3, MSRB_STAGES_BLOCK(REG_MSRB_ADDR)
+stw r3, 0x0(r4)
 
 ################################################################################
 # Set up number of delay frames
