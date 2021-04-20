@@ -292,6 +292,13 @@ add \reg, r3, r4
 .set Audio_AdjustMusicSFXVolume,0x80025064
 .set SFX_Menu_CommonSound,0x80024030
 .set SFX_PlaySoundAtFullVolume, 0x800237a8 #SFX_PlaySoundAtFullVolume(r3=soundid,r4=volume?,r5=priority)
+.set SFX_PlaySFX, 0x8038cff4 #SFX_PlaySFX(r3=soundid,r4=volume?,r5=priority, r6=?, r7=?)
+.set Audio_QueueFileLoad, 0x8002702c
+.set Audio_ResetCache, 0x80026F2C
+.set Audio_RequestSSMLoad, 0x800056a8
+.set Audio_SyncLoadAll, 0x80027648
+.set Audio_UpdateCache, 0x80027168
+.set SoundTest_PlaySFX, 0x80023b24 #SoundTest_PlaySFX(r3=soundid)
 
 ## Scene/input-related functions
 .set NoContestOrRetry_,0x8016cf4c

@@ -252,8 +252,73 @@ branchl r12, Text_CopyPremadeTextDataToStruct
 # Kill SFX
 #branchl r12,0x80023694
 
+lbz r3, MSRB_LOCAL_PLAYER_INDEX(REG_MSRB_ADDR)
+mulli r3, r3, 0x24
+addi r4, REG_MSRB_ADDR, MSRB_GAME_INFO_BLOCK + 0x60 # load char 2 id
+lbzx r3, r4, r3
+bl FN_PLAY_CHAR_SFX
+
+
 restore
 b EXIT
+
+
+
+################################################################################
+# Function: Play Select Fighter SFX
+################################################################################
+.set REG_PORT_SELECTIONS_ADDR, 14
+.set REG_INTERNAL_CHAR_ID, 15
+FN_PLAY_CHAR_SFX:
+backup
+
+mr REG_INTERNAL_CHAR_ID, r3
+
+# map char fx data to r4
+bl CHAR_FX_DATA_BLRL
+mflr r4
+
+mulli r3, REG_INTERNAL_CHAR_ID, 4 # get offset we want for internal char
+add r3, r3, r4
+lwz r3, 0x0(r3) # get sound id
+
+logf LOG_LEVEL_NOTICE, "FN_PLAY_CHAR_SFX Value: %d sound id: %x", "mr r5, REG_INTERNAL_CHAR_ID", "mr r6, r3"
+
+branchl r12, SoundTest_PlaySFX
+
+restore
+blr
+
+CHAR_FX_DATA_BLRL:
+blrl
+.long 0xeaa6 # Captn. Falcon
+.long 0x000138a8 # DK
+.long 0x0001adcf # Fox
+.long 0x00046ce5 # G&W
+.long 0x00022323 # Kirby
+.long 0x00024a07 # Bowser
+.long 0x00027110 # Link
+.long 0x00029811 # Luigi
+.long 0x0002bf72 # Mario
+.long 0x0002e65b # Marth
+.long 0x00030d44 # Mewtwo
+.long 0x00033462 # Ness
+.long 0x00035b67 # Peach
+.long 0x0003a9a2 # Pikachu
+.long 0x0001fbe5 # Ice Climbers
+.long 0x0003d0c4 # Puff
+.long 0x0003f7ac # Samus
+.long 0x000445ca # Yoshi
+.long 0x00041ec4 # Zelda
+.long 0x00041ef4 # 0x00041f4e # Sheik
+.long 0x000186a6 # Falco
+.long 0x00011180 # Y Link
+.long 0x00015fd8 # Dr. Mario
+.long 0x0004bb14 # Roy
+.long 0x00038280 # Pichu
+.long 0x000493e6 # Ganondorf
+
+
 
 ################################################################################
 # Function for initializing a player's subtext

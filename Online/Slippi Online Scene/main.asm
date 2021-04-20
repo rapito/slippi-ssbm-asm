@@ -864,7 +864,7 @@ branchl r12,0x80017700
 
 # Clear ssm queue
 li	r3, 28
-branchl	r12, 0x80026F2C
+branchl	r12, Audio_ResetCache
 
 # Load fighters' ssm files
 .set REG_COUNT,20
@@ -897,7 +897,7 @@ mulli r3,r3,0x3
 lbzx r3,r3,r4
 branchl r12,FN_RequestSSM   # queue it
 # set to load
-branchl r12, 0x80027168
+branchl r12, Audio_UpdateCache
 
 restore
 blr
@@ -905,6 +905,8 @@ blr
 #region SplashSceneDecide
 SplashSceneDecide:
 backup
+
+
 
 # This will cause the next scene to be VS mode
 load r4, 0x80479d30

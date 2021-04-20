@@ -668,7 +668,7 @@ CREATE_CHAT_MESSAGE:
 li r3, 0xb7
 li r4, 127
 li r5, 64
-branchl r12, 0x800237a8 # SFX_PlaySoundAtFullVolume
+branchl r12, SFX_PlaySoundAtFullVolume
 
 # Store Increased Message Count
 lbz r3, CSSDT_CHAT_MSG_COUNT(REG_CSSDT_ADDR)
