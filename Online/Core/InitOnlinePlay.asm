@@ -5,11 +5,14 @@
 .include "Common/Common.s"
 .include "Online/Online.s"
 
+.set REG_GAME_INFO_START, 31 # from parent
+
 .set REG_ODB_ADDRESS, 27
 .set REG_RXB_ADDRESS, 26
 .set REG_SSRB_ADDR, 25
 .set REG_MSRB_ADDR, 24
-.set REG_TXB_ADDR, REG_MSRB_ADDR-1
+.set REG_PLAYER_IDX, 23
+.set REG_TXB_ADDR, 22
 
 # Run replaced code
 branchl r12, 0x802254B8
@@ -150,7 +153,7 @@ lis r4, 0x804D
 stw r3, 0x5F90(r4) # overwrite seed
 
 # Copy match struct
-mr r3, r31
+mr r3, REG_GAME_INFO_START
 addi r4, REG_MSRB_ADDR, MSRB_GAME_INFO_BLOCK
 li r5, MATCH_STRUCT_LEN
 branchl r12, memcpy
@@ -159,6 +162,35 @@ branchl r12, memcpy
 load r4, 0x8045c388 # Random Stages
 lwz r3, MSRB_STAGES_BLOCK(REG_MSRB_ADDR)
 stw r3, 0x0(r4)
+
+# For teams, overwrite the colors in the game info block with the proper color for the given team ID
+lbz r3, OFST_R13_ONLINE_MODE(r13)
+cmpwi r3, ONLINE_MODE_TEAMS
+bne SKIP_CHAR_COLOR_OVERWRITE
+
+li REG_PLAYER_IDX, 0
+
+CHAR_COLOR_OVERWRITE_LOOP_START:
+# Load the team ID + 1 for team index and character ID to pass to function to get costume ID
+mulli r5, REG_PLAYER_IDX, 0x24
+addi r3, r5, 0x69
+lbzx r3, REG_GAME_INFO_START, r3 # Loads team ID
+addi r3, r3, 1
+addi r4, r5, 0x60
+lbzx r4, REG_GAME_INFO_START, r4 # Loads character ID
+branchl r12, FN_GetTeamCostumeIndex # Loads costume ID into r3
+
+# Write costume ID
+mulli r4, REG_PLAYER_IDX, 0x24
+addi r4, r4, 0x63
+stbx r3, REG_GAME_INFO_START, r4
+
+# Increment port
+addi REG_PLAYER_IDX, REG_PLAYER_IDX, 1
+cmpwi REG_PLAYER_IDX, 4
+blt CHAR_COLOR_OVERWRITE_LOOP_START
+
+SKIP_CHAR_COLOR_OVERWRITE:
 
 ################################################################################
 # Set up number of delay frames
@@ -179,17 +211,6 @@ li r3, MAX_DELAY_FRAMES
 
 SET_DELAY_FRAMES:
 stb r3, ODB_DELAY_FRAMES(REG_ODB_ADDRESS)
-
-################################################################################
-# Initialize everyone to UCF
-################################################################################
-# Back up the controller settings
-lwz r3, -ControllerFixOptions(rtoc)
-stw r3, ODB_CF_OPTION_BACKUP(REG_ODB_ADDRESS)
-
-# Init everyone to UCF
-load r3, 0x01010101
-stw r3, -ControllerFixOptions(rtoc)
 
 ################################################################################
 # Clear A inputs to prevent transformation
@@ -269,10 +290,6 @@ blrl
 backup
 
 lwz REG_ODB_ADDRESS, OFST_R13_ODB_ADDR(r13) # data buffer address
-
-# Restore controller fix states
-lwz r3, ODB_CF_OPTION_BACKUP(REG_ODB_ADDRESS)
-stw r3, -ControllerFixOptions(rtoc)
 
 ################################################################################
 # Report game results for unranked

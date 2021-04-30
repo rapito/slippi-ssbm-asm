@@ -11,8 +11,13 @@ branchl r12, PadRead
 # Check short circuit conditions
 branchl r12, FN_GetCommonMinorID
 cmpwi r3, 0x2 # Checks if we are in-game
-bne EXIT # If not in-game, do nothing
+beq ALLOWED_COMMON_ID
+cmpwi r3, 0x3 # Checks if we are in-game sudden death
+beq ALLOWED_COMMON_ID
+cmpwi r3, 0x4 # Checks if we are in-game training mode
+bne EXIT
 
+ALLOWED_COMMON_ID:
 getMajorId r3
 cmpwi r3, 0x8
 beq EXIT # Don't run this while online, it has its own built-in delay
@@ -32,7 +37,7 @@ bne EXIT
 
 backup
 
-computeBranchTargetAddress INJ_InitInGameDelay
+computeBranchTargetAddress r3, INJ_InitInGameDelay
 lwz REG_IGDB_ADDR, 0x8(r3) # Loads the address of the buffer
 
 # Check for zero delay, if delay is zero, don't do anything

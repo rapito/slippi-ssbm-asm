@@ -123,6 +123,12 @@ HANDLE_IDLE:
 # uncomment to debug the chat window
 # bl FN_CHECK_CHAT_INPUTS
 
+# Prevent CSS Actions if chat window is opened
+lbz r3, CSSDT_CHAT_WINDOW_OPENED(REG_CSSDT_ADDR)
+cmpwi r3, 0
+bne SKIP_START_MATCH # skip input if chat window is opened
+
+
 # When idle, pressing start will start finding match
 # Check if start was pressed
 rlwinm.	r0, REG_INPUTS, 0, 19, 19
@@ -279,6 +285,15 @@ lhz r3, 0x1E (r3)
 bl FN_TX_LOCK_IN
 b CHECK_SHOULD_START_MATCH
 HANDLE_CONNECTED_DIRECT_LOADSSS:
+# Set teams on/off bit. This is required by the "disable fod during doubles" gecko code
+lbz r4, OFST_R13_ONLINE_MODE(r13)
+cmpwi r4, ONLINE_MODE_TEAMS
+li r3, 0
+bne SET_TEAMS_BOOL
+li r3, 1
+SET_TEAMS_BOOL:
+lwz	r4, -0x49F0(r13)
+stb r3, 0x18(r4)
 # Request scene change
 li  r3,1
 stb	r3, -0x49AA (r13)
@@ -442,14 +457,16 @@ FN_TX_LOCK_IN_STAGE_SEND:
 sth r3, PSTB_STAGE_ID(REG_TXB_ADDR)
 stb r4, PSTB_STAGE_OPT(REG_TXB_ADDR)
 
-########################################################
-# Send Stages Selection 
-########################################################
-load r4, 0x8045c388 # Random Stages Selection Rules 
+# Write the online mode we are in
+lbz r3, OFST_R13_ONLINE_MODE(r13)
+stb r3, PSTB_ONLINE_MODE(REG_TXB_ADDR)
+
+# Send Stages Selection
+load r4, 0x8045c388 # Random Stages Selection Rules
 lwz r3, 0x0(r4)
 stw r3, PSTB_STAGES_BLOCK(REG_TXB_ADDR)
 
-# Start finding opponent
+# Indicate to Dolphin we want to lock-in
 mr r3, REG_TXB_ADDR
 li r4, PSTB_SIZE
 li r5, CONST_ExiWrite
@@ -668,10 +685,11 @@ li r5, 0x80
 branchl r12, GObj_Create
 mr REG_CHAT_GOBJ, r3 # save GOBJ pointer
 
-# create jbobj (custom chat window background)
-lwz r3, -0x49eC(r13) # = 804db6a0 pointer to MnSlChar file
-lwz r3, 0x18(r3) # pointer to our custom bg jobj
-branchl r12,0x80370e44 #Create Jboj
+# Load JOBJ
+lwz r3, CSSDT_SLPCSS_ADDR(REG_CSSDT_ADDR)
+lwz r3, SLPCSS_CHATSELECT (r3) # pointer to our custom bg main jobj
+lwz r3, 0x0 (r3) # jobj
+branchl r12,0x80370e44 #Create jobj
 mr  REG_CHAT_JOBJ,r3
 
 # Move to the left if widescreen is enabled
@@ -704,7 +722,7 @@ mr r3, REG_CHAT_GOBJ
 li r4, 4 # user data kind
 load r5, HSD_Free # destructor
 mr r6, r23 # memory pointer of allocated buffer above
-branchl r12, GObj_Initialize
+branchl r12, GObj_AddUserData
 
 # Set Think Function that runs every frame
 mr r3, REG_CHAT_GOBJ # set r3 to GOBJ pointer
@@ -909,8 +927,8 @@ cmpwi REG_CHAT_WINDOW_SECOND_INPUT, B_BUTTON
 bne SKIP_CSS_ONLINE_CHAT_WINDOW_THINK_CLOSE_CHAT_WINDOW
 
 # Play return SFX
-li  r3, 0
-branchl r12,SFX_Menu_CommonSound
+# li  r3, 0
+# branchl r12,SFX_Menu_CommonSound
 b CSS_ONLINE_CHAT_WINDOW_THINK_REMOVE_PROC
 
 SKIP_CSS_ONLINE_CHAT_WINDOW_THINK_CLOSE_CHAT_WINDOW:
