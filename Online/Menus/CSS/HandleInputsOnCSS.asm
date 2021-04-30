@@ -437,7 +437,8 @@ cmpwi REG_SB, 0
 bge FN_TX_LOCK_IN_STAGE_PICK
 
 FN_TX_LOCK_IN_STAGE_RAND:
-bl FN_GET_RANDOM_STAGE_ID
+#bl FN_GET_RANDOM_STAGE_ID
+li r3, 0x2
 li  r4,1
 #li  r3,0
 #li  r4,3
