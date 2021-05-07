@@ -28,31 +28,31 @@ bne GECKO_EXIT
 # Transfer Match Rules to EXI Device
 ########################################################
 
-# Prepare buffer for EXI transfer
-li r3, MITB_SIZE  # Store same bytes as Buffer Size
-branchl r12, HSD_MemAlloc
-mr REG_TXB_ADDR, r3 # Save the address where the memory has been allocated to
-
-# Set command in TX buffer
-li r3, CONST_SlippiCmdSetMatchInfo
-stb r3, MITB_CMD(REG_TXB_ADDR)
-
-# Set Match Info in TX Buffer
-# Copy match struct
-addi r3, REG_TXB_ADDR, MITB_GAME_INFO_BLOCK
-load r4, 0x80480530 #0x8045ac58
-li r5, MATCH_STRUCT_LEN
-branchl r12, memcpy#( void* dest, const void* src, std::size_t count );
-
-# transfer the bufffer
-mr r3, REG_TXB_ADDR
-li r4, MITB_SIZE # length of buffer
-li r5, CONST_ExiWrite
-branchl r12, FN_EXITransferBuffer
-
-# free the allocated memory
-mr r3, REG_TXB_ADDR
-branchl r12, HSD_Free
+## Prepare buffer for EXI transfer
+#li r3, MITB_SIZE  # Store same bytes as Buffer Size
+#branchl r12, HSD_MemAlloc
+#mr REG_TXB_ADDR, r3 # Save the address where the memory has been allocated to
+#
+## Set command in TX buffer
+#li r3, CONST_SlippiCmdSetMatchInfo
+#stb r3, MITB_CMD(REG_TXB_ADDR)
+#
+## Set Match Info in TX Buffer
+## Copy match struct
+#addi r3, REG_TXB_ADDR, MITB_GAME_INFO_BLOCK
+#load r4, 0x80480530 #0x8045ac58
+#li r5, MATCH_STRUCT_LEN
+#branchl r12, memcpy#( void* dest, const void* src, std::size_t count );
+#
+## transfer the bufffer
+#mr r3, REG_TXB_ADDR
+#li r4, MITB_SIZE # length of buffer
+#li r5, CONST_ExiWrite
+#branchl r12, FN_EXITransferBuffer
+#
+## free the allocated memory
+#mr r3, REG_TXB_ADDR
+#branchl r12, HSD_Free
 
 ################################################################################
 # Initialize Online Data Buffers
@@ -124,16 +124,16 @@ stw r3, SSRB_TERMINATOR(REG_SSRB_ADDR)
 ################################################################################
 # Prepare match characters, ports, and RNG
 ################################################################################
-# Get match state info
-li r3, 0
-CHECK_MATCH_READY:
-branchl r12, FN_LoadMatchState
-mr REG_MSRB_ADDR, r3
-
-lbz r3, MSRB_IS_MATCH_INFO_READY(REG_MSRB_ADDR)
-cmpwi r3, 0
-mr r3, REG_MSRB_ADDR
-beq CHECK_MATCH_READY # loop until match info is synched
+## Get match state info
+#li r3, 0
+#CHECK_MATCH_READY:
+#branchl r12, FN_LoadMatchState
+#mr REG_MSRB_ADDR, r3
+#
+#lbz r3, MSRB_IS_MATCH_INFO_READY(REG_MSRB_ADDR)
+#cmpwi r3, 0
+#mr r3, REG_MSRB_ADDR
+#beq CHECK_MATCH_READY # loop until match info is synched
 
 # Prepare player indices
 lbz r3, -0x5108(r13) # Grab the 1p port in use

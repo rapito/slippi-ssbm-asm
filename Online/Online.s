@@ -288,8 +288,7 @@ lwz \reg, -0x62A0(\reg)
 ################################################################################
 .set MITB_CMD, 0 # u8
 .set MITB_GAME_INFO_BLOCK, MITB_CMD + 1
-.set MITB_PADDING, MITB_GAME_INFO_BLOCK + MATCH_STRUCT_LEN
-.set MITB_SIZE, MITB_PADDING + 7
+.set MITB_SIZE, MITB_GAME_INFO_BLOCK + MATCH_STRUCT_LEN
 
 ################################################################################
 # Player Selections Transfer Buffer

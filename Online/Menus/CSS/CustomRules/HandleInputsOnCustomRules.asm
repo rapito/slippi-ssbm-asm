@@ -26,36 +26,7 @@ branchl	r12, 0x801A36A0 # Inputs_GetPlayerInstantInputs
 cmpwi r4, 0x10 # check if BTN_Z was pressed
 bne EXIT
 
-# IF Z is Pressed, then Restore Custom Rules
-
-load r12, 0x8045BF10
-
-bl DATA
-mflr r3
-
-# TODO: Consider using mem copy instead
-
-lwz r4, 0x0(r3)
-stw r4, 0x0(r12)
-lwz r4, 0x4(r3)
-stw r4, 0x4(r12)
-lwz r4, 0x8(r3)
-stw r4, 0x8(r12)
-lwz r4, 0xC(r3)
-stw r4, 0xC(r12)
-
-lwz r4, 0x10(r3)
-stw r4, 0x454 + 0x0(r12)
-lwz r4, 0x14(r3)
-stw r4, 0x454 + 0x8(r12)
-lwz r4, 0x18(r3)
-stw r4, 0x454 + 0xC(r12)
-lwz r4, 0x1C(r3)
-stw r4, 0x454 + 0x10(r12)
-lwz r4, 0x20(r3)
-stw r4, 0x454 + 0x14(r12)
-lwz r4, 0x24(r3)
-stw r4, 0x454 + 0x18(r12)
+logf LOG_LEVEL_NOTICE, "Test"
 
 b EXIT
 

@@ -438,10 +438,10 @@ bge FN_TX_LOCK_IN_STAGE_PICK
 
 FN_TX_LOCK_IN_STAGE_RAND:
 #bl FN_GET_RANDOM_STAGE_ID
-li r3, 0x2
-li  r4,1
-#li  r3,0
-#li  r4,3
+#li r3, 0x2
+#li  r4,1
+li  r3,0
+li  r4,3
 b FN_TX_LOCK_IN_STAGE_SEND
 
 FN_TX_LOCK_IN_STAGE_UNSET:
@@ -463,8 +463,9 @@ lbz r3, OFST_R13_ONLINE_MODE(r13)
 stb r3, PSTB_ONLINE_MODE(REG_TXB_ADDR)
 
 # Send Stages Selection
-load r4, 0x8045c388 # Random Stages Selection Rules
-lwz r3, 0x0(r4)
+#load r4, 0x8045c388 # Random Stages Selection Rules
+#lwz r3, 0x0(r4)
+load r3, 0x8045c388
 stw r3, PSTB_STAGES_BLOCK(REG_TXB_ADDR)
 
 # Indicate to Dolphin we want to lock-in
