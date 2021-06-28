@@ -1,0 +1,35 @@
+{
+  "outputFiles": [
+    {
+      "file": "Output/Test/GALE01r2.ini",
+      "header": [
+        "# GALE01 - Super Smash Bros. Melee NTSC-U 1.02",
+        "",
+        "[Core]",
+        "CPUThread = True",
+        "GPUDeterminismMode = fake-completion",
+        "PollingMethod = OnSIRead",
+        "FastDiscSpeed = True",
+        "",
+        "[Gecko_Enabled]",
+        "$Toogle Tap Jump From CSS"
+      ]
+    }
+  ],
+  "codes": [
+    {
+      "name": "Toogle Tap Jump From CSS",
+      "authors": [
+        "Rapito"
+      ],
+      "build": [
+        {
+          "type": "injectFolder",
+          "sourceFolder": "External/Toggle Tap Jump From CSS",
+          "isRecursive": true,
+          "annotation": "Turn Off Tap Jump for everyone [Rapito]"
+        }
+      ]
+    }
+  ]
+}
