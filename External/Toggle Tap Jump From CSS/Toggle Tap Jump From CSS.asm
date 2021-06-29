@@ -3,6 +3,7 @@
 ################################################################################
 
 .include "Common/Common.s"
+.include "Online/Online.s"
 .include "External/Toggle Tap Jump From CSS/InitToggleTapJump.s"
 
 .set REG_CURRENT_PLAYER, 23
@@ -17,6 +18,11 @@ blrl
 .byte 0x01  
 
 CODE_START:
+
+  getMinorMajor r3
+  cmpwi r3, SCENE_ONLINE_CSS
+  beq EXIT # If online CSS, exit
+
   lbz r3, 7(r31)
   cmpwi r3, 0x0
   bne- RUMBLE_CURSOR
