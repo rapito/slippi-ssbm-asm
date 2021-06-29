@@ -4,11 +4,11 @@
 ################################################################################
 .include "Common/Common.s"
 .include "Online/Online.s"
-.include "External/Toggle Tap Jump From CSS/InitToggleTapJump.s"
+.include "External/Toggle Tap Jump/InitToggleTapJump.s"
 
-getMinorMajor r3
-cmpwi r3, SCENE_ONLINE_IN_GAME
-beq EXIT # If online in game, exit
+# getMinorMajor r3
+# cmpwi r3, SCENE_ONLINE_IN_GAME
+# beq EXIT # If online in game, exit
 
 computeBranchTargetAddress r3, INJ_ToggleTapJump
 # Load the values of the buffer

@@ -25,7 +25,7 @@
       "build": [
         {
           "type": "injectFolder",
-          "sourceFolder": "External/Toggle Tap Jump From CSS",
+          "sourceFolder": "External/Toggle Tap Jump",
           "isRecursive": true,
           "annotation": "Turn Off Tap Jump for everyone [Rapito]"
         }
