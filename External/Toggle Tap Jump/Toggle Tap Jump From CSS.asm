@@ -1,5 +1,5 @@
 ################################################################################
-# Address: INJ_ToggleTapJump
+# Address: INJ_ToggleTapJumpCSS
 ################################################################################
 
 .include "Common/Common.s"
@@ -16,6 +16,22 @@ STATIC_MEMORY_TABLE_BLRL:
   .byte 0x01 
   .byte 0x01
   .byte 0x01  
+
+FN_CAN_RUN_CODE:
+  li r3, 1 # can run by default 
+
+  getMinorMajor r4
+  cmpwi r4, SCENE_ONLINE_IN_GAME
+  bne FN_CAN_RUN_CODE_EXIT # If not online game, can run so exit
+
+  lbz r4, OFST_R13_ONLINE_MODE(r13)
+  cmpwi r4, ONLINE_MODE_DIRECT
+  beq FN_CAN_RUN_CODE_EXIT # if on DIRECT, can run so exit
+
+  li r3, 0 # set return value to false since cannot run
+
+  FN_CAN_RUN_CODE_EXIT:
+  blr
 
 RESET_SETTINGS_AND_EXIT:
   bl STATIC_MEMORY_TABLE_BLRL

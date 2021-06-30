@@ -12,13 +12,13 @@
         "FastDiscSpeed = True",
         "",
         "[Gecko_Enabled]",
-        "$Toogle Tap Jump From CSS"
+        "$Toogle Tap Jump"
       ]
     }
   ],
   "codes": [
     {
-      "name": "Toogle Tap Jump From CSS",
+      "name": "Toogle Tap Jump",
       "authors": [
         "Rapito"
       ],

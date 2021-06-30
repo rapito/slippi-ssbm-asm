@@ -7,20 +7,14 @@
 .include "Online/Online.s"
 .include "External/Toggle Tap Jump/InitToggleTapJump.s"
 
-getMinorMajor r3
-cmpwi r3, SCENE_ONLINE_IN_GAME
-bne CODE_START # If not online game, continue as normal
-
-lbz r3, OFST_R13_ONLINE_MODE(r13)
-cmpwi r3, ONLINE_MODE_DIRECT
-bne EXIT # if not on DIRECT, exit
+.set REG_BRANCH_TARGET_ADDR, 5
+CanRunInGameTapChecks EXIT, REG_BRANCH_TARGET_ADDR
 
 CODE_START:
-    computeBranchTargetAddress r3, INJ_ToggleTapJump
     # Load the values of the buffer
     lbz r4, 0x0678 (r24) # current player index
     addi r4, r4, 8
-    lbzx r3, r4, r3 
+    lbzx r3, r4, REG_BRANCH_TARGET_ADDR 
     cmpwi r3, 1
     beq EXIT
     li r4, 0 # original code again
