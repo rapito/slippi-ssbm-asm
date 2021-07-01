@@ -30,6 +30,20 @@
           "annotation": "Turn Off Tap Jump for everyone [Rapito]"
         }
       ]
+    },
+    {
+      "name": "BM Hacks",
+      "authors": [
+        "Rapito"
+      ],
+      "build": [
+        {
+          "type": "injectFolder",
+          "sourceFolder": "External/BM Hacks",
+          "isRecursive": true,
+          "annotation": "Misc Hacks for BM [Rapito]"
+        }
+      ]
     }
   ]
 }

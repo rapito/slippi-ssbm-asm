@@ -202,6 +202,7 @@ li r5, 0x2B # index of jboj child we want (franchise icon)
 li r6, -1
 branchl r12, JObj_GetJObjChild
 
+# happens at 806635cc
 lwz r3, JOBJ_CHILD_OFFSET(sp) # Franchise Icon
 load r4, 0xC0400000 # -3
 stw r4, 0x3C(r3) # set Y position
