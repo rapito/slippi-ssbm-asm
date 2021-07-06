@@ -12,22 +12,22 @@
         "FastDiscSpeed = True",
         "",
         "[Gecko_Enabled]",
-        "$Toogle Tap Jump From CSS"
+        "$Toogle Tap Jump Or L Cancel From CSS"
       ]
     }
   ],
   "codes": [
     {
-      "name": "Toogle Tap Jump From CSS",
+      "name": "Toogle Tap Jump Or L Cancel From CSS",
       "authors": [
         "Rapito"
       ],
       "build": [
         {
           "type": "injectFolder",
-          "sourceFolder": "External/Toggle Tap Jump",
+          "sourceFolder": "External/Toggle Settings",
           "isRecursive": true,
-          "annotation": "Turn Off Tap Jump for everyone [Rapito]"
+          "annotation": "Turn Off Tap Jump or L Cancel [Rapito]"
         }
       ]
     },

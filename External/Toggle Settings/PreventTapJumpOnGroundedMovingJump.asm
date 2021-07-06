@@ -1,11 +1,11 @@
 ################################################################################
-# Address: 0x800cb074 # Address in Interrupt_GroundJumpFromShield  
+# Address: 0x800cafac # Address in Interrupt_AS_TurnRunActualChecks 
 # where tap jump threshold is checked 
 # f0 is the threshold and f1 is the current value of the c-stick
 ################################################################################
 .include "Common/Common.s"
 .include "Online/Online.s"
-.include "External/Toggle Tap Jump/InitToggleTapJump.s"
+.include "External/Toggle Settings/InitToggleSettings.s"
 
 getMinorMajor r3
 cmpwi r3, SCENE_ONLINE_IN_GAME
@@ -23,8 +23,8 @@ CODE_START:
     lbzx r3, r4, r3 
     cmpwi r3, 1
     beq EXIT
-    branch r12, 0x800cb08c
+    branch r12, 0x800cafe8
 
 
 EXIT:
-    lbz	r3, 0x0671 (r4) # original code
+    lwz	r4, -0x514C (r13) # original code

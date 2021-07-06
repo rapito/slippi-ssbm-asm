@@ -4,7 +4,7 @@
 
 .include "Common/Common.s"
 .include "Online/Online.s"
-.include "External/Toggle Tap Jump/InitToggleTapJump.s"
+.include "External/Toggle Settings/InitToggleSettings.s"
 
 .set REG_CURRENT_PLAYER, 23
 
@@ -12,17 +12,34 @@ b CODE_START
 
 STATIC_MEMORY_TABLE_BLRL:
   blrl
+  # tap jump values
   .byte 0x01
   .byte 0x01 
   .byte 0x01
   .byte 0x01  
+  # auto l-cancel values
+  .byte 0x00
+  .byte 0x00 
+  .byte 0x00
+  .byte 0x00  
 
 RESET_SETTINGS_AND_EXIT:
   bl STATIC_MEMORY_TABLE_BLRL
   mflr r3
   load r4, 0x01010101
-  stw r4, 0x0(r3) # load current flag for player
+  stw r4, 0x0(r3) # load default flags
+  load r4, 0x00000000
+  stw r4, 0x8(r3) # load default flags
+  
   b EXIT
+
+FN_RUMBLE_CONTROLLER: # r3 is current port index
+  li r4, 0x0
+  li r5, 0xE
+  li r6, 0x0
+  subi r7, r13, 0x66B0
+  branchl r12, HSD_PadRumbleActiveID
+  blr
 
 CODE_START:
 
@@ -39,37 +56,66 @@ CODE_START:
   bl STATIC_MEMORY_TABLE_BLRL
   mflr r3
   lbzx r5, REG_CURRENT_PLAYER, r3 # load current flag for player
+  addi r3, r3, 8 # offset to l cancel settings
+  lbzx r6, REG_CURRENT_PLAYER, r3 # load current flag for player
 
   mr r3, REG_CURRENT_PLAYER
   branchl r12, Inputs_GetPlayerInstantInputs 
-  cmpwi r4, 0x02
-  beq TOGGLE_TAMP_JUMP_ON
-  cmpwi r4, 0x01
-  beq TOGGLE_TAMP_JUMP_OFF
+
+  mr r3, REG_CURRENT_PLAYER # pre set current player index again
+
+  cmpwi r4, 0x02 # RIGHT
+  beq TOGGLE_TAP_JUMP_ON
+  cmpwi r4, 0x01 # LEFT
+  beq TOGGLE_TAP_JUMP_OFF
+
+  cmpwi r4, 0x08 # UP
+  beq TOGGLE_L_CANCEL_ON
+  cmpwi r4, 0x04 # DOWN
+  beq TOGGLE_L_CANCEL_OFF
+
   b EXIT
 
-TOGGLE_TAMP_JUMP_ON:
+TOGGLE_TAP_JUMP_ON:
   cmplwi r5, 1 # if already on exit
   beq- EXIT
-  mr r3, REG_CURRENT_PLAYER
-  li r4, 0x0
-  li r5, 0xE
-  li r6, 0x0
-  subi r7, r13, 0x66B0
-  branchl r12, HSD_PadRumbleActiveID
-  li r4, 0x1
-  b SET_TAP_JUMP_FLAG
 
-TOGGLE_TAMP_JUMP_OFF:
+  li r4, 0x1
+  li r5, 0 # TAP JUMP
+  b SET_SETTING_FLAG
+
+TOGGLE_TAP_JUMP_OFF:
   cmplwi r5, 0 # if already off exit
   beq- EXIT
+  
   li r4, 0x0
+  li r5, 0 # TAP JUMP
+  b SET_SETTING_FLAG
 
-SET_TAP_JUMP_FLAG:
+
+TOGGLE_L_CANCEL_ON: # expect r5 to be current flag
+  cmplwi r6, 1 # if already on exit
+  beq- EXIT
+  
+  li r4, 0x1
+  li r5, 8 # L CANCEL
+  b SET_SETTING_FLAG
+
+TOGGLE_L_CANCEL_OFF:
+  cmplwi r6, 0 # if already off exit
+  beq- EXIT
+  li r4, 0x8
+  li r5, 8 # L CANCEL
+
+
+SET_SETTING_FLAG: # r5 offsets to setting type (0=TapJump,8=LCancel)
+  # bl FN_RUMBLE_CONTROLLER
   bl STATIC_MEMORY_TABLE_BLRL
   mflr r3
+  add r3, r3, r5 # offset to setting type
   stbx r4, REG_CURRENT_PLAYER, r3 # Persist flag
 
+INIT_RUMBLE_ANIM:
   # Init Rumble Cursor Anim 
   li r4, 0x1
   stb r4, 7(r31)

@@ -4,7 +4,7 @@
 
 .include "Common/Common.s"
 .include "Online/Online.s"
-.include "External/Toggle Tap Jump/InitToggleTapJump.s"
+.include "External/Toggle Settings/InitToggleSettings.s"
 
 .set REG_CURRENT_PLAYER, 5
 .set REG_DATA_BUFFER_ADDR, 6
