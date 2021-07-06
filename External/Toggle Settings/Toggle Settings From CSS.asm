@@ -46,7 +46,7 @@ RESET_SETTINGS_AND_EXIT:
   load r4, 0x01010101
   stw r4, 0x0(r3) # load default flags
   load r4, 0x00000000
-  stw r4, 0x8(r3) # load default flags
+  stw r4, 0x4(r3) # load default flags
   
   b EXIT
 
