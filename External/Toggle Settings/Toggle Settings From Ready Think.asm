@@ -34,10 +34,10 @@ Loop:
   #Get players inputs
   mr r3,REG_CURRENT_PLAYER
   branchl r12, Inputs_GetPlayerHeldInputs
-  cmpwi r4, 1 
+  cmpwi r4, 1 # PAD LEFT
   beq TurnTapJumpOff
-  cmpwi r4, 2
-  beq TurnTapJumpOn
+  cmpwi r4, 0x40 # LEFT Trigger
+  beq TurnLCancelOn
   b LoopInc
 
 TurnTapJumpOn:
@@ -47,6 +47,16 @@ TurnTapJumpOff:
   li r3, 0
 PersistTapJump: 
   addi r4, REG_CURRENT_PLAYER, 8
+  stbx r3, r4, REG_DATA_BUFFER_ADDR 
+  b LoopInc
+
+TurnLCancelOn:
+  li r3, 1
+  b PersistLCancel
+TurnLCancelOff:
+  li r3, 0
+PersistLCancel: 
+  addi r4, REG_CURRENT_PLAYER, 8+4
   stbx r3, r4, REG_DATA_BUFFER_ADDR 
 
 LoopInc:

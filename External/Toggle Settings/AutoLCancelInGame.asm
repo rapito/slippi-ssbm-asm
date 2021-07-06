@@ -19,7 +19,7 @@ NO_L_CANCEL:
 
 CODE_START:
     computeBranchTargetAddress r3, INJ_ToggleTapJump
-    addi r4, REG_LOCAL_PLAYER_INDEX, 16
+    addi r4, REG_LOCAL_PLAYER_INDEX, 8+4
     lbzx r3, r4, r3 
     cmpwi r3, 1
     beq DO_L_CANCEL
