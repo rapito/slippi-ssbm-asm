@@ -18,7 +18,7 @@ NO_L_CANCEL:
     branch r12, 0x8006B630
 
 CODE_START:
-    computeBranchTargetAddress r3, INJ_ToggleTapJump
+    computeBranchTargetAddress r3, INJ_ToggleSettingsCSS
     addi r4, REG_LOCAL_PLAYER_INDEX, 16
     lbzx r3, r4, r3 
     cmpwi r3, 1

@@ -1,5 +1,5 @@
 ################################################################################
-# Address: 0x802f7484 # Address in Ready Think function 
+# Address: INJ_ToggleSettingsReadyThink # Address in Ready Think function 
 ################################################################################
 
 .include "Common/Common.s"
@@ -22,7 +22,7 @@ CODE_START:
   blt EXIT # if lower than threshold, exit
 
   # Load the values of the buffer
-  computeBranchTargetAddress REG_DATA_BUFFER_ADDR, INJ_ToggleTapJump
+  computeBranchTargetAddress REG_DATA_BUFFER_ADDR, INJ_ToggleSettingsCSS
   lbz r4, 0x0678 (r24) # current player index
   addi r4, r4, 8
   lbzx r3, r4, r3 

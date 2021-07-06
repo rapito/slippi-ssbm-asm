@@ -8,6 +8,9 @@
 
 .set REG_LOCAL_PLAYER_INDEX, 6
 
+.set REG_BRANCH_TARGET_ADDR, 7
+CanRunInGameTapChecks ORIGINAL_CODE_START, REG_BRANCH_TARGET_ADDR
+
 lbz REG_LOCAL_PLAYER_INDEX, 0xC(r31) # Load port of current character
 b CODE_START
 
@@ -18,9 +21,8 @@ NO_L_CANCEL:
     branch r12, 0x8006B630
 
 CODE_START:
-    computeBranchTargetAddress r3, INJ_ToggleTapJump
-    addi r4, REG_LOCAL_PLAYER_INDEX, 8+4
-    lbzx r3, r4, r3 
+    addi r4, REG_LOCAL_PLAYER_INDEX, 4
+    lbzx r3, r4, REG_BRANCH_TARGET_ADDR 
     cmpwi r3, 1
     beq DO_L_CANCEL
 
