@@ -38,6 +38,9 @@ Loop:
   beq TurnTapJumpOff
   cmpwi r4, 0x40 # LEFT Trigger
   beq TurnLCancelOn
+  cmpwi r4, 0x41 # Both Buttons
+  beq TurnTapJumpOffAndLCancelOn
+
   b LoopInc
 
 TurnTapJumpOn:
@@ -47,6 +50,15 @@ TurnTapJumpOff:
   li r3, 0
 PersistTapJump: 
   addi r4, REG_CURRENT_PLAYER, 8
+  stbx r3, r4, REG_DATA_BUFFER_ADDR 
+  b LoopInc
+
+TurnTapJumpOffAndLCancelOn:
+  li r3, 0
+  addi r4, REG_CURRENT_PLAYER, 8
+  stbx r3, r4, REG_DATA_BUFFER_ADDR 
+  li r3, 1
+  addi r4, REG_CURRENT_PLAYER, 8+4
   stbx r3, r4, REG_DATA_BUFFER_ADDR 
   b LoopInc
 
