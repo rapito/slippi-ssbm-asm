@@ -18,20 +18,6 @@
   ],
   "codes": [
     {
-      "name": "Toogle Tap Jump Or L Cancel From CSS",
-      "authors": [
-        "Rapito"
-      ],
-      "build": [
-        {
-          "type": "injectFolder",
-          "sourceFolder": "External/Toggle Settings",
-          "isRecursive": true,
-          "annotation": "Turn Off Tap Jump or L Cancel [Rapito]"
-        }
-      ]
-    },
-    {
       "name": "BM Hacks",
       "authors": [
         "Rapito"
@@ -39,7 +25,7 @@
       "build": [
         {
           "type": "injectFolder",
-          "sourceFolder": "External/BM Hacks",
+          "sourceFolder": "External/Toggle Settings",
           "isRecursive": true,
           "annotation": "Misc Hacks for BM [Rapito]"
         }
