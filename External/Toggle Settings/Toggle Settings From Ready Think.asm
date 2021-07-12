@@ -23,10 +23,6 @@ CODE_START:
 
   # Load the values of the buffer
   computeBranchTargetAddress REG_DATA_BUFFER_ADDR, INJ_ToggleSettingsCSS
-  lbz r4, 0x0678 (r24) # current player index
-  addi r4, r4, 8
-  lbzx r3, r4, r3 
-  cmpwi r3, 1
 
   li REG_CURRENT_PLAYER, 0 # start loop at 0
 Loop:
@@ -38,8 +34,17 @@ Loop:
   beq TurnTapJumpOff
   cmpwi r4, 0x40 # LEFT Trigger
   beq TurnLCancelOn
-  cmpwi r4, 0x41 # Both Buttons
+  cmpwi r4, 0x10 # Z
+  beq TurnLCancelOn
+  cmpwi r4, 0x41 # Both Buttons(L Trigger & PadLeft)
   beq TurnTapJumpOffAndLCancelOn
+  cmpwi r4, 0x11 # Both Buttons (Z & PadLeft)
+  beq TurnTapJumpOffAndLCancelOn
+
+  # check if L trigger is being pressed at least a bit
+  mr r3, REG_CURRENT_PLAYER
+  IsLTriggerPressed
+  bgt TurnLCancelOn
 
   b LoopInc
 
