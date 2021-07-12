@@ -40,6 +40,19 @@ FN_CAN_RUN_CODE:
   FN_CAN_RUN_CODE_EXIT:
   blr
 
+# input: r3 = player index
+FN_IS_ANALOG_L_PRESSED:
+  load r4, 0x804c21cc #static mem to finding input data
+
+  # offset by player index
+  mulli r3, r3, 68  
+  add r3, r4, r3  
+
+  lfs f0, 0x30(r3) # check if L is pressed
+  lfs	f1, -0x778C (r2) # 0.0
+  fcmpo cr0, f0, f1 
+  blr
+
 RESET_SETTINGS_AND_EXIT:
   bl STATIC_MEMORY_TABLE_BLRL
   mflr r3

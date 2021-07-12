@@ -43,7 +43,9 @@ Loop:
 
   # check if L trigger is being pressed at least a bit
   mr r3, REG_CURRENT_PLAYER
-  IsLTriggerPressed
+  addi r4, REG_DATA_BUFFER_ADDR, 0xC+4+0x2C # offset to FN_IS_ANALOG_L_PRESSED
+  mtctr r4
+  bctrl # execute FN_IS_ANALOG_L_PRESSED
   bgt TurnLCancelOn
 
   b LoopInc
@@ -52,6 +54,13 @@ TurnTapJumpOn:
   li r3, 1
   b PersistTapJump
 TurnTapJumpOff:
+
+  mr r3, REG_CURRENT_PLAYER
+  addi r4, REG_DATA_BUFFER_ADDR, 0xC+4+0x2C # offset to FN_IS_ANALOG_L_PRESSED
+  mtctr r4
+  bctrl # execute FN_IS_ANALOG_L_PRESSED
+  bgt TurnTapJumpOffAndLCancelOn
+
   li r3, 0
 PersistTapJump: 
   addi r4, REG_CURRENT_PLAYER, 8
