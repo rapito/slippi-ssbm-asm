@@ -30,6 +30,20 @@
           "annotation": "Tap Jump [Rapito]"
         }
       ]
+    },
+    {
+      "name": "Toogle Tap Jump Or L Cancel",
+      "authors": [
+        "Rapito"
+      ],
+      "build": [
+        {
+          "type": "injectFolder",
+          "sourceFolder": "External/Toggle Settings",
+          "isRecursive": true,
+          "annotation": "Toogle Tap Jump Or L Cancel [Rapito]"
+        }
+      ]
     }
   ]
 }

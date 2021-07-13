@@ -49,7 +49,10 @@ FN_IS_ANALOG_L_PRESSED:
   add r3, r4, r3  
 
   lfs f0, 0x30(r3) # check if L is pressed
-  lfs	f1, -0x778C (r2) # 0.0
+  lfs	f1, -0x21C (r13) # 0.827
+  #804db6a0
+  #804db47c 0.7
+  #804db484 0.827
   fcmpo cr0, f0, f1 
   blr
 
