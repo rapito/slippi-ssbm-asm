@@ -971,10 +971,10 @@ stb r3, CSSCWDT_TIMER(REG_CHAT_WINDOW_GOBJ_DATA_ADDR)
 mr r3, REG_CHAT_WINDOW_INPUT
 mr r4, REG_CHAT_WINDOW_SECOND_INPUT
 
-li r5, 4 # shift first input 4 bytes to the left
-slw r3, r3, r5
-add r3, r3, r4 # add second input to highest byte
-bl FN_SEND_CHAT_COMMAND
+# li r5, 4 # shift first input 4 bytes to the left
+# slw r3, r3, r5
+# add r3, r3, r4 # add second input to highest byte
+# bl FN_SEND_CHAT_COMMAND
 
 # flag as input already sent
 li r3, 1
