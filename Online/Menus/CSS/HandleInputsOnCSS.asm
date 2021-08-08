@@ -101,9 +101,6 @@ branchl r12, SFX_Menu_CommonSound
 SOUND_PLAY_END:
 
 
-# uncomment to debug the chat window
-bl FN_CHECK_CHAT_INPUTS
-
 ################################################################################
 # Fork logic based on current connection state
 ################################################################################
@@ -123,9 +120,6 @@ b SKIP_START_MATCH
 # Case 1: Handle idle case
 ################################################################################
 HANDLE_IDLE:
-
-# uncomment to debug the chat window
-# bl FN_CHECK_CHAT_INPUTS
 
 # Prevent CSS Actions if chat window is opened
 lbz r3, CSSDT_CHAT_WINDOW_OPENED(REG_CSSDT_ADDR)
@@ -311,8 +305,6 @@ b SKIP_START_MATCH
 # Check to see if both players are ready and start match if they are
 CHECK_SHOULD_START_MATCH:
 
-# Check if we should open chat window
-#bl FN_CHECK_CHAT_INPUTS
 
 lbz r3, MSRB_IS_LOCAL_PLAYER_READY(REG_MSRB_ADDR)
 lbz r4, MSRB_IS_REMOTE_PLAYER_READY(REG_MSRB_ADDR)
