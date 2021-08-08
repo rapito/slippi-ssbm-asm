@@ -1,3 +1,4 @@
 [submodule "m-ex"]
 	path = m-ex
 	url = https://github.com/rapito/m-ex
+	branch = slippi-hooks
