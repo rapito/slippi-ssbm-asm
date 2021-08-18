@@ -27,6 +27,10 @@ blrl
 .set DO_STRING_SLPCSS_FILENAME, DO_USER_TEXT_INPUT + 0x10
 .string "slpCSS"
 .set DO_STRING_SLPCSS_SYMBOLNAME, DO_STRING_SLPCSS_FILENAME + 11
+.string "Slippi.dat"
+.set DO_STRING_SLPDAT_FILENAME, DO_STRING_SLPCSS_SYMBOLNAME + 7
+.string "slpFunction"
+.set DO_STRING_SLPDAT_SYMBOLNAME, DO_STRING_SLPDAT_FILENAME + 11
 .align 2
 
 CODE_START:
@@ -108,7 +112,38 @@ branchl r12,0x80380358
 # Save this pointer
 stw r3, CSSDT_SLPCSS_ADDR(REG_CSSDT_ADDR)
 
+################################################################################
+# Load Slippi Functions File
+################################################################################
+# Execute LoadRELDAT
+addi r3, REG_LOCAL_DATA_ADDR, DO_STRING_SLPDAT_FILENAME
+addi r4,sp,0x80          
+addi r5, REG_LOCAL_DATA_ADDR, DO_STRING_SLPDAT_SYMBOLNAME
+branchl r12, 0x803d709c  
+# r4 holds the symbol address
+
+# Store Function Array pointer
+lwz r3, 0x80(sp) 
+stw r3, CSSDT_SLPFX_ARRAY_ADDR(REG_CSSDT_ADDR) 
+
+# Store FX Table Address
+lwz r3, 0xC(r4) # FX Table Offset
+stw r3, CSSDT_SLPFX_ADDR(REG_CSSDT_ADDR) 
+
 restore
+b EXIT
+
+
+FileName:
+blrl
+.string "Slippi.dat"
+.align 2
+
+SymbolName:
+blrl
+.string "slpFunction"
+.align 2
+
 
 EXIT:
 

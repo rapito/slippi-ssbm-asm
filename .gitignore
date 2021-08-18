@@ -226,3 +226,5 @@ Output/Playback/build-playback.bat - Shortcut.lnk
 Output/Bootloader/build-bootloader.bat - Shortcut.lnk
 ./build-netplay0.sh
 ./netplay0.json
+
+.vscode

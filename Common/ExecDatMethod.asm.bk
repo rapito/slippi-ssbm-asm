@@ -1,0 +1,58 @@
+################################################################################
+# Address: FN_ExecDatMethod
+################################################################################
+.include "Common/Common.s"
+################################################################################
+# Description:
+# Executes m-ex c Functions located at Slippi.dat
+################################################################################
+# Inputs:
+# r3 - FX Offset of function to invoke based on the slpFunction symbol
+# offset is calculated with (function index+1)*4 
+################################################################################
+# Output:
+# r3 - return pointer of method
+################################################################################
+backup
+
+  .set REG_FX_ARRAY, 31
+  .set REG_MEX_DATA, 30
+  .set REG_FN_OFFSET, 29
+  .set REG_FN_RET_ADDR, 28
+
+  mr REG_FN_OFFSET, r3      # backup fn offset
+
+  INDEX_FN:
+  
+  # Execute LoadRELDAT
+  bl  FileName
+  mflr  r3                  # Slippi.dat
+  addi  r4,sp,0x80          # FX Table return pointer address
+  bl  SymbolName            # slpFunction
+  mflr  r5
+  branchl r12, 0x803d709c   # Standalone function LoadRELDAT
+  mr REG_MEX_DATA, r4
+
+  # Find passed function offset and execute
+  lwz REG_FX_ARRAY, 0x80(sp)
+  lwz r3, 0xC(REG_MEX_DATA) # FX Table
+  add r3, r3, REG_FN_OFFSET # offset to function offset location
+  lwz r3, 0x0(r3)           # Offset to OnCSSLoad
+  add r3, r3, REG_FX_ARRAY  # offset from fx array to OnCSSLoad
+  mr REG_FN_RET_ADDR, r3
+  mtctr r3
+  bctrl 
+
+  mr r3, REG_FN_RET_ADDR  # Return address to fn
+restore
+blr
+
+FileName:
+blrl
+.string "Slippi.dat"
+.align 2
+
+SymbolName:
+blrl
+.string "slpFunction"
+.align 2

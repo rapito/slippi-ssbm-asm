@@ -309,7 +309,9 @@
 ################################################################################
 .set CSSDT_MSRB_ADDR, 0 # u32
 .set CSSDT_SLPCSS_ADDR, CSSDT_MSRB_ADDR + 4 # ptr
-.set CSSDT_TEXT_STRUCT_ADDR, CSSDT_SLPCSS_ADDR + 4 # u32
+.set CSSDT_SLPFX_ARRAY_ADDR, CSSDT_SLPCSS_ADDR + 4 # ptr to Array of functions on slippi.dat
+.set CSSDT_SLPFX_ADDR, CSSDT_SLPFX_ARRAY_ADDR + 4 # ptr to FX Table holding offsets and length of functions in slippi.dat
+.set CSSDT_TEXT_STRUCT_ADDR, CSSDT_SLPFX_ADDR + 4 # u32
 .set CSSDT_SPINNER1, CSSDT_TEXT_STRUCT_ADDR + 4 # u8 (0 = hide, 1 = spin, 2 = done)
 .set CSSDT_SPINNER2, CSSDT_SPINNER1 + 1 # u8 (0 = hide, 1 = spin, 2 = done)
 .set CSSDT_SPINNER3, CSSDT_SPINNER2 + 1 # u8 (0 = hide, 1 = spin, 2 = done)

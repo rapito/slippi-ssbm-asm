@@ -371,6 +371,10 @@
         },
         {
           "type": "gecko",
+          "sourceFile": "Binary/m-ex/OnLoadCSSScene.ini"
+        },
+        {
+          "type": "gecko",
           "sourceFile": "Binary/m-ex/LoadRelDat.ini"
         }
       ]

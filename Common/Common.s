@@ -175,8 +175,15 @@ add \reg, r3, r4
 .set FN_CSSUpdateCSP,0x800056bc
 .set FN_RequestSSM,0x800056a8
 .set FN_GetCommonMinorID,0x8000561c
+.set FN_ExecDatMethod, 0x80005694
 # available addresses for static functions
-# 0x80005694
+
+# DAT Functions Offsets
+.set DAT_FN_OnBoot, 0x1*4
+.set DAT_FN_OnSceneChange, 0x3*4
+.set DAT_FN_OnCSSLoad, 0x5*4
+.set DAT_FN_OnSSSLoad, 0x7*4
+.set DAT_FN_UpdateCSS, 0x9*4 
 
 # Online static functions
 .set FN_CaptureSavestate,0x80005608

@@ -32,6 +32,7 @@ getMinorMajor r3
 cmpwi r3, SCENE_ONLINE_CSS
 bne EXIT # If not online CSS, continue as normal
 
+
 ################################################################################
 # Init
 ################################################################################
@@ -39,6 +40,10 @@ mr REG_INPUTS, r7
 loadwz REG_CSSDT_ADDR, CSSDT_BUF_ADDR
 lwz REG_MSRB_ADDR, CSSDT_MSRB_ADDR(REG_CSSDT_ADDR) # Load where buf is stored
 li REG_ZERO, 0 # set to zero just in case :)
+
+# exec UpdateCSS function
+li r3, DAT_FN_UpdateCSS
+branchl r12, FN_ExecDatMethod 
 
 ################################################################################
 # Play sound on lock-in state 1 -> 0 transition
