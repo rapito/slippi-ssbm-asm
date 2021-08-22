@@ -358,7 +358,12 @@ li	r3, 1
 branchl r12, SFX_Menu_CommonSound
 
 # Go to online mode CSS
-li r3, 0x8
+#   li  r3,14
+#   branchl r12,0x801a42e8
+# #Change Major
+#   branchl r12,0x801a42d4
+
+li r3, 13
 branchl r12, Event_StoreSceneNumber
 b FN_OnlineSubmenuThink_INPUT_HANDLERS_END
 

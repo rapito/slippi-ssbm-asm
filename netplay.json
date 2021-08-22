@@ -376,6 +376,14 @@
         {
           "type": "gecko",
           "sourceFile": "Binary/m-ex/LoadRelDat.ini"
+        },
+        {
+          "type": "gecko",
+          "sourceFile": "Binary/m-ex/GetBootSceneID.ini"
+        },
+        {
+          "type": "gecko",
+          "sourceFile": "Binary/m-ex/LoadMajorSceneFile.ini"
         }
       ]
     },
