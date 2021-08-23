@@ -364,6 +364,7 @@ branchl r12, SFX_Menu_CommonSound
 #   branchl r12,0x801a42d4
 
 li r3, 13
+#li r3, 8
 branchl r12, Event_StoreSceneNumber
 b FN_OnlineSubmenuThink_INPUT_HANDLERS_END
 
