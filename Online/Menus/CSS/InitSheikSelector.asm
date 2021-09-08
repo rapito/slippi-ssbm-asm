@@ -14,6 +14,7 @@
 .set REG_VARIOUS_3, 24
 .set REG_LR, 23
 
+b EXIT
 # Ensure that this is an online CSS
 getMinorMajor r3
 cmpwi r3, SCENE_ONLINE_CSS
