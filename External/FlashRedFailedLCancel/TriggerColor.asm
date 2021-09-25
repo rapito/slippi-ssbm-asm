@@ -4,7 +4,6 @@
 
 .include "Common/Common.s"
 .include "Online/Online.s"
-.include "External/Toggle Tap Jump/InitToggleTapJump.s"
 
 # Player slot is at 0xC(r5) r7 and r8 seem like they should be safe to use
 # as they get overwitten in the GetLCancelStatus code

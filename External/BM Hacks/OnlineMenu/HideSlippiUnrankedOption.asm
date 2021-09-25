@@ -29,6 +29,9 @@ cmpwi r4, OPTION_LOGOUT_IDX
 beq RETURN_NORMAL
 cmpwi r4, OPTION_UPDATE_IDX
 beq RETURN_NORMAL
+cmpwi r4, OPTION_UNRANKED_IDX
+li r4, 1 # enable it
+beq EXIT
 
 # anything else block it
 li r3, 0
