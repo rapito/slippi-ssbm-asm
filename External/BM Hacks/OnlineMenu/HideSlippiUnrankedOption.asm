@@ -20,6 +20,12 @@ mr r4, REG_BACKUP_SUBMENU_OPTION
 cmpwi r3, 0x8 # online mode
 bne- RETURN_NORMAL
 
+lbz r3, OFST_R13_APP_STATE(r13)
+cmpwi r3, 0
+beq RETURN_NORMAL
+cmpwi r3, 2
+beq RETURN_NORMAL
+
 # everything here are the only options allowed, so leave their default value as is
 cmpwi r4, OPTION_DIRECT_IDX
 beq RETURN_NORMAL
