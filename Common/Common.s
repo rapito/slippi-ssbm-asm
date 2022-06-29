@@ -390,6 +390,8 @@ add \reg, r3, r4
 .set CONST_SlippiCmdFileLoad, 0xD2
 .set CONST_SlippiCmdGctLength, 0xD3
 .set CONST_SlippiCmdGctLoad, 0xD4
+.set CONST_SlippiCmdFileDATLength, 0xD6
+.set CONST_SlippiCmdFileDATLoad, 0xD7
 
 # Misc
 .set CONST_SlippiCmdGetDelay, 0xD5

@@ -13,7 +13,9 @@
 
 # Init
   backup
-  lwz REG_Buffer,OFST_R13_SB_ADDR(r13)
+  li  r3,128
+  branchl r12,HSD_MemAlloc
+  mr REG_Buffer, r3
 # Ensure buffer exists
   cmpwi REG_Buffer,0
   bne  GetFileLength_REQUEST_DATA
