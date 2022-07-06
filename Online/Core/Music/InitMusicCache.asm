@@ -7,9 +7,9 @@
 .include "Online/Online.s"
 .include "Online/Core/Music/Music.s"
 
-.set REG_PROPERTIES, 14
-.set REG_HPS_ID, 15
-.set REG_HPS_FILENAME, 16
+.set REG_PROPERTIES, 22
+.set REG_HPS_ID, 23
+.set REG_HPS_FILENAME, 24
 
 
 b CODE_START

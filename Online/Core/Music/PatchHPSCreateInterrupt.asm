@@ -7,13 +7,15 @@
 .include "Online/Online.s"
 .include "Online/Core/Music/Music.s"
 
-.set REG_GOBJ, 13
-.set REG_DATA, 14
-.set REG_OFFSET_TO_READ, 15
-.set REG_LENGTH_TO_READ, 16
-.set REG_TARGET_ADDR, 17
+.set REG_GOBJ, 31
+.set REG_DATA, REG_GOBJ-1
+.set REG_OFFSET_TO_READ, REG_DATA-1
+.set REG_LENGTH_TO_READ, REG_OFFSET_TO_READ-1
+.set REG_TARGET_ADDR, REG_LENGTH_TO_READ-1
+
 
 .set DATA_SIZE, 10
+
 
 mr REG_OFFSET_TO_READ, r4
 mr REG_LENGTH_TO_READ, r6
@@ -36,7 +38,7 @@ backup
 #Zero Data
   mr  r3,REG_DATA
   li  r4,DATA_SIZE
-  branchl r12,ZeroAreaLength
+  branchl r12,Zero_AreaLength
 
 # Store current read offset 
   stw REG_OFFSET_TO_READ, 0x0(REG_DATA)
@@ -61,6 +63,9 @@ restore
 b Exit
 
 InvokeHPSPreloadCallbackLoadNextChunk:
+    blrl
+    backup
+
     mr REG_GOBJ, r3
     # get address of data buffer
     lwz REG_DATA, 0x2C(REG_GOBJ)
@@ -94,5 +99,7 @@ InvokeHPSPreloadCallbackLoadNextChunk:
     mr r3, REG_GOBJ
     branchl r12, GObj_Destroy
 
+    restore
+    blr
 
 Exit:
