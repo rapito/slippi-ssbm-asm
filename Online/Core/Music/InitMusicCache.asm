@@ -7,9 +7,11 @@
 .include "Online/Online.s"
 .include "Online/Core/Music/Music.s"
 
-.set REG_PROPERTIES, 22
+.set REG_DATA, 22
 .set REG_HPS_ID, 23
 .set REG_HPS_FILENAME, 24
+.set REG_HPS_BUFFER_ADDRESS, 25
+.set REG_HPS_BUFFER_SIZE, 26
 
 
 b CODE_START
@@ -19,15 +21,16 @@ b CODE_START
 ################################################################################
 .set EXT_HPS_FILENAME, 0x0 
 .set EXT_HPS_ID, EXT_HPS_FILENAME + 4
-.set EXT_HPS_BUFFER, EXT_HPS_ID + 1
-.set EXT_HPS_FETCH_SIZE, EXT_HPS_BUFFER + 4
-.set EXT_HPS_FETCH_FILE, EXT_HPS_FETCH_SIZE + 4
+.set EXT_HPS_BUFFER_SIZE, EXT_HPS_ID + 1
+.set EXT_HPS_BUFFER, EXT_HPS_BUFFER_SIZE + 4
+.set EXT_HPS_FETCH_FILE, EXT_HPS_BUFFER + 4
 DATA_BLRL:
 blrl
 # Start with data that is accessible externally
-.long 0 
-.byte 0
-.long 0
+.long 0 # filename
+.byte 0 # entrynum
+.long 0 # buffer size
+.long 0 # buffer address
 .align 2
 
 
@@ -53,13 +56,66 @@ backup
 branchl r12, 0x8033796c # DVDConvertPathToEntrynum(r3=filename)
 mr REG_HPS_ID, r3 
 
+# Check short circuit conditions
+# branchl r12, FN_GetCommonMinorID
+# cmpwi r3, 0x2 # Checks if we are in-game
+# beq ALLOWED_COMMON_ID
+# cmpwi r3, 0x3 # Checks if we are in-game sudden death
+# beq ALLOWED_COMMON_ID
+# cmpwi r3, 0x4 # Checks if we are in-game training mode
+# bne RESTORE_AND_EXIT
+
+ALLOWED_COMMON_ID:
+
 # init properties
 bl DATA_BLRL
-mflr REG_PROPERTIES
+mflr REG_DATA
 
 # store hps filename and id into static data
-stw REG_HPS_FILENAME, EXT_HPS_FILENAME(REG_PROPERTIES)
-stb REG_HPS_ID, EXT_HPS_ID(REG_PROPERTIES)
+stw REG_HPS_FILENAME, EXT_HPS_FILENAME(REG_DATA)
+stb REG_HPS_ID, EXT_HPS_ID(REG_DATA)
+
+# TODO: this is causing issues I think, needs to be revised
+# check if there's any file stored and clear it
+lwz r3, EXT_HPS_BUFFER(REG_DATA)
+cmpwi r3, 0
+beq SKIP_DATA_CLEAR
+# clear data with HSD FREE
+branchl r12, HSD_Free
+SKIP_DATA_CLEAR:
+
+# fetch file size and store into static data 
+mr r3, REG_HPS_FILENAME
+branchl r12, File_GetSize
+mr REG_HPS_BUFFER_SIZE, r3
+stw REG_HPS_BUFFER_SIZE, EXT_HPS_BUFFER_SIZE(REG_DATA)
+
+# Prep buffer to store hps file into
+branchl r12, HSD_MemAlloc
+mr REG_HPS_BUFFER_ADDRESS, r3
+mr r4, REG_HPS_BUFFER_SIZE
+branchl r12, Zero_AreaLength
+
+
+# Read whole file and store it in static data
+  mr r3, REG_HPS_ID                         # file entrynum
+  li r4, 0                                  # offset
+  mr r5, REG_HPS_BUFFER_ADDRESS             # addr
+  mr r6, REG_HPS_BUFFER_SIZE                # size
+  li r7,33                                  # main ram (i think)
+  li r8, 1                                  # honestly no idea
+  load r9, Disc_FinishedReadingFileCallback # callback
+  li r10, 0                                 # cb arg 2
+  branchl r12,File_Read                   # (int entrynum, int file_offset, void *buffer, int length, int flags, int r8, void *cb, int r10);
+
+  WaitForFile:
+    branchl r12, DVDWaitForRead
+    cmpwi r3,0
+    beq  WaitForFile
+
+stw REG_HPS_BUFFER_ADDRESS, EXT_HPS_BUFFER(REG_DATA)
+
+RESTORE_AND_EXIT:
 
 # restore hps id to r3
 mr r3, REG_HPS_ID

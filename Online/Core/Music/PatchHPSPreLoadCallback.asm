@@ -76,17 +76,31 @@ InvokeHPSPostLoadCallback:
 
     # exit if target address is empty 
     cmpwi REG_TARGET_ADDR, 0
-    ble START_POST_LOAD_CALLBACK
+    beq START_POST_LOAD_CALLBACK
 
     # Get cached buffer and copy to target
     computeBranchTargetAddress r3, INJ_fileLoad_HPS
-    lwz r4, IDO_HPS_BUFFER(r3) # source 
-    cmpwi r4, 0
-    ble END_PROC
+    lwz r7, IDO_HPS_BUFFER(r3) # source 
+    cmpwi r7, 0
+    beq END_PROC
 
-    mr r3, REG_TARGET_ADDR # destination
-    mr r5, REG_LENGTH_TO_READ
-    branchl r12, memcpy
+# TODO: this is working perfectly for sound, but I'm not sure if this is the cause of the problem I'm seeing with corrupted memory
+    # this part of the memory is copied to ARAM instead so we need to 
+    # mimic how the game does it using ARQPostRequest
+    load r3, 0x804c62a0 # request
+    li r4, 0 # owner
+    li r5, 0 # type
+    li r6, 1 # prio
+    add r7, r7, REG_OFFSET_TO_READ # source + offset
+    mr r8, REG_TARGET_ADDR 
+    mr r9, REG_LENGTH_TO_READ
+    load r10, 0x8038f098 # callback
+    branchl r12, 0x80352114 # ARQPostRequest(r3=request,r4=owner,r5=type,r6=prio,r7-source,r8=dest,r9=length,r10=callback)
+
+    # mr r3, REG_TARGET_ADDR # destination
+    # add r4, r4, REG_OFFSET_TO_READ # source + offset
+    # mr r5, REG_LENGTH_TO_READ
+    # branchl r12, memcpy
 
     START_POST_LOAD_CALLBACK:
     # invoke HPS_PostLoadCallback
