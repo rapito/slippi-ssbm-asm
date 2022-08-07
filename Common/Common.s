@@ -305,8 +305,11 @@ add \reg, r3, r4
 .set Zero_AreaLength,0x8000c160
 .set TRK_flush_cache,0x80328f50
 .set FileLoad_ToPreAllocatedSpace,0x80016580
+.set File_GetSize, 0x800163d8 # (r3 = filename)
+.set DVDWaitForRead, 0x800161a0 #
+.set Disc_FinishedReadingFileCallback, 0x8001615c
+.set File_Read, 0x8038f6d4 #(int entrynum, int file_offset, void *buffer, int length, int flags, int r8, void *cb, int r10);
 .set DiscError_ResumeGame,0x80024f6c
-
 ## PlayerBlock/game-state related functions
 .set PlayerBlock_LoadStaticBlock,0x80031724
 .set PlayerBlock_UpdateCoords,0x80032828
