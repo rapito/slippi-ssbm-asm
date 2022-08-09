@@ -13,6 +13,8 @@
 #     r5 = read (0x0) or write (0x1)
 ################################################################################
 .include "Common/Common.s"
+# .include "Online/Online.s"
+# .include "Online/Core/Music/Music.s"
 
 .set  REG_HeapLo,31
 .set  REG_FileSize,28
@@ -28,13 +30,13 @@ backup
 #Create a temp heap for getting the codeset size
   addi r4,REG_HeapLo,32 + 32              #heap hi, 32 bytes padding?
   mr  r3,REG_HeapLo                  #heap lo = start
-  branchl r12,0x803440e8
+  branchl r12,OSCreateHeap
   mr  REG_HeapID,r3
 
 # Alloc temp buffer
   mr  r3,REG_HeapID
   li  r4,32
-  branchl r12,0x80343ef0
+  branchl r12,OSAllocFromHeap
   mr  REG_Buffer,r3
 
 # request gct size from slippi
@@ -65,12 +67,12 @@ backup
   addi r4,r4, 32                     #heap hi, 32 bytes padding?
   mr  r3,REG_HeapLo                  #heap lo = start
   mr  REG_HeapLo,r4                  #new start = heap hi
-  branchl r12,0x803440e8
+  branchl r12,OSCreateHeap
   mr  REG_HeapID,r3
 #Alloc from this heap
   mr  r3,REG_HeapID
   mr  r4,REG_FileSize
-  branchl r12,0x80343ef0
+  branchl r12,OSAllocFromHeap
   mr  REG_Buffer,r3
 
 #Load file here
@@ -88,7 +90,6 @@ backup
   li  r5,CONST_ExiRead
   branchl r12,FN_EXITransferBuffer
 
-  stw	REG_HeapLo, -0x3FE8 (r13)   # store new heap low
 
 # Save pointer to gecko codes
   load r3,GeckoHeapPtr
@@ -99,6 +100,25 @@ backup
   bl Callback_ProcessGeckoCode # Callback function to process codes
   mflr r4
   branchl r12, FN_ProcessGecko
+
+
+# Create custom audio heap
+# #Align
+#   load  REG_FileSize, 2306176
+#   byteAlign32 REG_FileSize
+# #Create heap of this size
+#   add r4,REG_HeapLo,REG_FileSize     #heap hi = start + filesize
+#   addi r4,r4, 32                     #heap hi, 32 bytes padding?
+#   mr  r3,REG_HeapLo                  #heap lo = start
+#   mr  REG_HeapLo,r4                  #new start = heap hi
+#   branchl r12,OSCreateHeap
+#   mr  REG_HeapID,r3
+
+# # store heap id into dynamic data
+#   computeBranchTargetAddress r3, INJ_fileLoad_HPS
+#   stb REG_HeapID, IDO_HPS_HEAP_ID(r3) 
+
+  stw	REG_HeapLo, -0x3FE8 (r13)   # store new heap low
 
   b Exit
 
