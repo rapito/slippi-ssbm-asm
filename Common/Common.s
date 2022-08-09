@@ -444,6 +444,9 @@ add \reg, r3, r4
 .set VIWaitForRetrace,0x8034f314
 .set VISetBlack,0x80350100
 
+.set OSCreateHeap, 0x803440e8
+.set OSAllocFromHeap, 0x80343ef0
+.set OSFreeToHeap, 0x80343fec
 .set OSDisableInterrupts, 0x80347364
 .set OSRestoreInterrupts, 0x8034738c
 .set OSCancelAlarm, 0x80343aac
