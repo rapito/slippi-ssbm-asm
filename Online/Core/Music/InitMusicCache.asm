@@ -78,10 +78,10 @@ stb REG_HPS_ID, EXT_HPS_ID(REG_DATA)
 
 # TODO: this is causing issues I think, needs to be revised
 # check if there's any file stored and clear it
-# lwz r3, EXT_HPS_BUFFER(REG_DATA)
-# mr REG_HPS_BUFFER_ADDRESS, r3
-# cmpwi r3, 0
-# beq SKIP_DATA_CLEAR
+lwz r3, EXT_HPS_BUFFER(REG_DATA)
+mr REG_HPS_BUFFER_ADDRESS, r3
+cmpwi r3, 0
+beq SKIP_DATA_CLEAR
 
 # fill it with zeros just in case
 # lwz r4, EXT_HPS_BUFFER_SIZE(REG_DATA)
