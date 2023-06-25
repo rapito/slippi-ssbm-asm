@@ -1,7 +1,7 @@
 {
   "outputFiles": [
     {
-      "file": "C:\\Users\\rober\\Documents\\Slippi\\Builds\\netplay\\Sys\\bootloader.gct"
+      "file": "Output/Bootloader/bootloader.gct"
     },
     {
       "file": "Output/Bootloader/bootloader.txt"

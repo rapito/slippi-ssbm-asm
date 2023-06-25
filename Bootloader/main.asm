@@ -109,20 +109,20 @@ backup
 
 
 # Create custom audio heap
-# #Align
-#   load  REG_FileSize, 2306176
-#   byteAlign32 REG_FileSize
-# #Create heap of this size
-#   add r4,REG_HeapLo,REG_FileSize     #heap hi = start + filesize
-#   addi r4,r4, 32                     #heap hi, 32 bytes padding?
-#   mr  r3,REG_HeapLo                  #heap lo = start
-#   mr  REG_HeapLo,r4                  #new start = heap hi
-#   branchl r12,OSCreateHeap
-#   mr  REG_HeapID,r3
+#Align
+  load  REG_FileSize, 2306176
+  byteAlign32 REG_FileSize
+#Create heap of this size
+  add r4,REG_HeapLo,REG_FileSize     #heap hi = start + filesize
+  addi r4,r4, 32                     #heap hi, 32 bytes padding?
+  mr  r3,REG_HeapLo                  #heap lo = start
+  mr  REG_HeapLo,r4                  #new start = heap hi
+  branchl r12,OSCreateHeap
+  mr  REG_HeapID,r3
 
-# # store heap id into dynamic data
-#   computeBranchTargetAddress r3, INJ_fileLoad_HPS
-#   stb REG_HeapID, IDO_HPS_HEAP_ID(r3)
+# store heap id into dynamic data
+  computeBranchTargetAddress r3, INJ_fileLoad_HPS
+  stb REG_HeapID, IDO_HPS_HEAP_ID(r3)
 
   stw	REG_HeapLo, -0x3FE8 (r13)   # store new heap low
 

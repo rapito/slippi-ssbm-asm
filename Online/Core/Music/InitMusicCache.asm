@@ -145,14 +145,14 @@ RESTORE_AND_EXIT:
 
 # restore hps id to r3
 mr r3, REG_HPS_ID
-restore 
+restore
 
 EXIT:
 
 # menu sizes
 # 2085824
-# 2222976 
-# 2020960  
+# 2222976
+# 2020960
 
 # stage fd
-# 3354112 
+# 3354112
