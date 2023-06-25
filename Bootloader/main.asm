@@ -14,7 +14,7 @@
 ################################################################################
 .include "Common/Common.s"
 .include "Online/Online.s"
-# .include "Online/Core/Music/Music.s"
+.include "Online/Core/Music/Music.s"
 
 .set  REG_HeapLo,31
 .set  REG_FileSize,28
