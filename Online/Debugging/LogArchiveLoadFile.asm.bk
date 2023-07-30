@@ -1,0 +1,44 @@
+################################################################################
+# Address: 0x80016bf8 # In ArchiveLoadFile at the beginning of the method
+################################################################################
+
+.include "Common/Common.s"
+.include "Online/Core/Music/Music.s"
+
+.set REG_BACKUP, 31
+.set REG_PlayerData, 30
+
+mr REG_BACKUP, r3
+
+backup
+
+# Get free bytes of current custom heap
+li r3, HPS_CUSTOM_HEAP_ID
+branchl r12, 0x80344168 # OSCheackHeap
+
+# log information out
+mr r4, REG_BACKUP
+mr r5, r3 # Free bytes on music heap
+oslogf "ArchiveLoadFile custom heap file: %s size: %i"
+
+# Get free bytes of current heap
+# -> OSCheackHeap(HSD_GetHeapID())
+branchl r12, 0x80375404 # HSD_GetHeapID
+branchl r12, 0x80344168 # OSCheckHeap
+
+# log information out
+mr r4, REG_BACKUP
+mr r5, r3 # Free bytes on music heap
+oslogf "ArchiveLoadFile curent heap file: %s size: %i"
+
+# get file size
+mr r3, REG_BACKUP
+branchl r12,0x800163d8 # File_GetSize
+mr r4, r3
+oslogf "ArchiveLoadFile file size: %i"
+
+restore
+
+mr	r3, REG_BACKUP
+# replaced code line
+mr	r29, REG_BACKUP

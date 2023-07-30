@@ -1,5 +1,28 @@
 ################################################################################
 # Address: 80023FFC
 ################################################################################
+.include "Common/Common.s"
 
+backup
+# Check short circuit conditions
+branchl r12, FN_GetCommonMinorID
+cmpwi r3, 0x2 # Checks if we are in-game
+beq enable_music
+cmpwi r3, 0x3 # Checks if we are in-game sudden death
+beq enable_music
+cmpwi r3, 0x4 # Checks if we are in-game training mode
+bne disable_music
+
+enable_music:
+li r4, 127
+b exit
+
+disable_music:
 li r4, 0
+
+exit:
+restore
+mr r3, r31
+
+
+

@@ -10,6 +10,7 @@
 .set REG_DATA, 31
 .set REG_HPS_BUFFER_ADDRESS, 30
 .set REG_HPS_BUFFER_SIZE, 29
+.set REG_HEAP_BACKUP, 28
 
 backup 
 
@@ -35,21 +36,21 @@ cmpwi REG_HPS_BUFFER_ADDRESS, 0 # if empty just return
 # b RESTORE_AND_EXIT
 beq RESTORE_AND_EXIT
 
-# zero out the data
-mr r3, REG_HPS_BUFFER_ADDRESS
-lwz r4, IDO_HPS_BUFFER_SIZE(REG_DATA)  
-# branchl r12, Zero_AreaLength
+# back current heap before moving the our custom audio heap
+#mr r3, REG_HEAP_BACKUP
+#branchl r12, HSD_GetHeapID
 
+# Set custom heap
+#lbz r3, IDO_HPS_HEAP_ID(REG_DATA)
+#branchl r12, HSD_SetHeapID
 
 # free up buffer
 mr r3, REG_HPS_BUFFER_ADDRESS
 branchl r12, HSD_Free 
-# lwz r3, IDO_HPS_BUFFER(REG_DATA) 
 
-# li r3, HPS_CUSTOM_HEAP_ID
-# lbz r3, IDO_HPS_HEAP_ID(REG_DATA)  
-# mr r4, REG_HPS_BUFFER_ADDRESS
-# branchl r12, OSFreeToHeap
+# Restore previous HSD Heap
+#lbz r3, IDO_HPS_HEAP_ID(REG_DATA)
+#branchl r12, HSD_SetHeapID
 
 # cleanup data
 load r3, 0

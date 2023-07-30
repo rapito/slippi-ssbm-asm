@@ -90,6 +90,7 @@ backup
   li  r5,CONST_ExiRead
   branchl r12,FN_EXITransferBuffer
 
+  stw	REG_HeapLo, -0x3FE8 (r13)   # store new heap low
 
 # Save pointer to gecko codes
   load r3,GeckoHeapPtr
@@ -107,14 +108,15 @@ backup
   branchl r12,0x80343ef0
   stw r3,OFST_R13_SB_ADDR(r13)
 
+b Exit
 
 # Create custom audio heap
 #Align
-  load  REG_FileSize, 2306176
+  load  REG_FileSize, 100
   byteAlign32 REG_FileSize
 #Create heap of this size
   add r4,REG_HeapLo,REG_FileSize     #heap hi = start + filesize
-  addi r4,r4, 32                     #heap hi, 32 bytes padding?
+  addi r4,r4, 32                     #heap hi, 32 bits padding?
   mr  r3,REG_HeapLo                  #heap lo = start
   mr  REG_HeapLo,r4                  #new start = heap hi
   branchl r12,OSCreateHeap
@@ -126,6 +128,8 @@ backup
 
   stw	REG_HeapLo, -0x3FE8 (r13)   # store new heap low
 
+  mr  r4, REG_HeapID
+  oslogf "===== Slp Heap ID: [0x%x] "
   b Exit
 
 Callback_ProcessGeckoCode:
@@ -137,14 +141,13 @@ blrl
 .set REG_ReplaceSize, 27
 
   # r5 is input to this function, it contains the size of the replaced data
-  cmpwi r5, 0 # If size is 0, either we don't support this codetype or theres nothing to replace
+  cmpwi r5, 0 # If size is 0, either we dont support this codetype or theres nothing to replace
   beq Callback_ProcessGeckoCode_End
 
   backup # TODO: Consider being more efficient about backup and restore?
 
   mr REG_CodeAddress, r4
   mr REG_ReplaceSize, r5
-
   lwz r5, 0(REG_CodeAddress)
   rlwinm r5, r5, 0, 0x01FFFFFF
   oris REG_TargetDataPtr, r5, 0x8000 # Injection Address
@@ -159,6 +162,7 @@ blrl
   cmpwi r3, 0xC2
   beq HANDLE_C2
 
+bp
   # TODO: Assert? It should not be possible to get here. Obviously we could skip
   # TODO: one of the above compares but I'd rather do an assert or something
   # TODO: here to make sure that we haven't made a code error

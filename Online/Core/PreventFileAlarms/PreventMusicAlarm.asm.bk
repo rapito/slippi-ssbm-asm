@@ -1,5 +1,23 @@
 ################################################################################
-# Address: 8038add0
+# Address: 8038ade4
 ################################################################################
+.include "Common/Common.s"
 
-blr
+backup
+# Check short circuit conditions
+branchl r12, FN_GetCommonMinorID
+cmpwi r3, 0x2 # Checks if we are in-game
+beq enable_music
+cmpwi r3, 0x3 # Checks if we are in-game sudden death
+beq enable_music
+cmpwi r3, 0x4 # Checks if we are in-game training mode
+bne disable_music
+
+disable_music:
+restore
+branch r12, 0x8038b10c
+
+
+enable_music:
+restore
+addi	r31, r3, 10464

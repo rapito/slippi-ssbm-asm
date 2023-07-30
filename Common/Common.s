@@ -376,6 +376,9 @@ add \reg, r3, r4
 .set HSD_Randi,0x80380580
 .set HSD_MemAlloc,0x8037f1e4
 .set HSD_Free,0x8037f1b0
+.set HSD_GetHeapID, 0x80375404
+.set HSD_SetHeapID, 0x8037540C
+.set HSD_SetNextArena, 0x80375414
 .set HSD_PadFlushQueue,0x80376d04
 .set HSD_StartRender,0x80375538
 .set HSD_VICopyXFBASync,0x803761c0
